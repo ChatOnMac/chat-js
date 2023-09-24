@@ -101,7 +101,7 @@ class ChatParentBridge {
     
                 batchSize: 50,
                 modifier: (doc) => doc,
-            }.bind(this),
+            }
     
             pull: {
                 async handler(lastCheckpoint, batchSize) {
@@ -133,11 +133,11 @@ class ChatParentBridge {
                         documents,
                         checkpoint,
                     };
-                },
+                }.bind(this),
     
                 batchSize: 10,
                 modifier: (doc) => doc,
-            }.bind(this),
+            },
         });
     
         return replicationState;

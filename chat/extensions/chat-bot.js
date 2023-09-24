@@ -11,6 +11,7 @@ import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
+import { logger } from "@open-draft/logger";
 import { invariant } from "outvariant";
 import { isNodeProcess } from "is-node-process";
 import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';

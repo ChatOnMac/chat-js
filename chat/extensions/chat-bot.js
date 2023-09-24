@@ -1,7 +1,7 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
 //import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/chat.js";
-import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
+import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js#nobundle";
 
 // Copied from module
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
@@ -10,7 +10,7 @@ import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';
-import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.js';
+import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     if (unusedOnlineBots.length > 0) {

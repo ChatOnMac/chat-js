@@ -9,6 +9,7 @@ import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 
 import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
+import { strictEventEmitter } from "strict-event-emitter";
 import { logger } from "@open-draft/logger";
 import { invariant } from "outvariant";
 import { isNodeProcess } from "is-node-process";

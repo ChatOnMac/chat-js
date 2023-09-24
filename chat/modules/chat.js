@@ -65,10 +65,12 @@ function conflictHandler(i) {
 class ChatParentBridge {
     db;
     state;
+    onFinishedSyncingDocsFromCanonical;
 
-    constructor ({ db, state }) {
+    constructor ({ db, state, onFinishedSyncingDocsFromCanonical }) {
         this.db = db;
         this.state = state;
+        this.onFinishedSyncingDocsFromCanonical = onFinishedSyncingDocsFromCanonical;
     }
 
     async createReplicationState(collection) {
@@ -199,6 +201,8 @@ class ChatParentBridge {
         console.log("gonna state..")
         console.log(this.state)
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: this.state.replications }));
+
+        await this.onFinishedSyncingDocsFromCanonical();
     }
 }
 
@@ -213,7 +217,15 @@ class Chat extends EventTarget {
     constructor ({ db }) {
         super();
         this.db = db;
-        this.parentBridge = new ChatParentBridge({ db, state: this.state });
+        const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical;
+        this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical });
+    }
+
+    async onFinishedSyncingDocsFromCanonical() {
+        await this.keepOwnPersonasOnline();
+        chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
+        await this.offerUnusedPersonas();
+        await this.wireUnusedPersonas();
     }
 
     static async init({ offerUnusedPersonas }) {
@@ -229,15 +241,11 @@ class Chat extends EventTarget {
         // Invoke the private constructor...
         const chat = new Chat({ db });
 
-        await chat.keepOwnPersonasOnline();
-        chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
-        await chat.offerUnusedPersonas();
-        await chat.wireUnusedPersonas();
-
         return chat;
     }
 
     async wireUnusedPersonas() {
+        if (this.db.collections.length === 0) { return }
         const onlineBots = await this.ownPersonas();
         const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
@@ -253,8 +261,9 @@ class Chat extends EventTarget {
         const botPersonas = await this.getBotPersonas(null);
         return botPersonas
     }
-
+    
     async keepOwnPersonasOnline() {
+        if (this.db.collections.length === 0) { return }
         const botPersonas = await this.ownPersonas();
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
@@ -262,6 +271,7 @@ class Chat extends EventTarget {
                 let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
             }
+            // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
                     // Refresh instance (somehow stale otherwise).
@@ -273,6 +283,7 @@ class Chat extends EventTarget {
     }
 
     async getBotPersonas(room) {
+        if (this.db.collections.length === 0) { return }
         let extension = await this.db.collections["code_extension"].findOne().exec();
         let botPersonas = await this.getProvidedBotsIn(extension, room);
         if (botPersonas.length > 0) {
@@ -301,6 +312,7 @@ class Chat extends EventTarget {
     }
 
     async getProvidedBotsIn(extension, room) {
+        if (this.db.collections.length === 0) { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
             let allInRoomMap = await db.collections["persona"].findByIds(room.participants).exec();

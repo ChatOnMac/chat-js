@@ -9,6 +9,7 @@ import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 
 import { until } from "@open-draft/until";
 import { invariant } from "outvariant";
+import { isNodeProcess } from "is-node-process";
 import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 

@@ -255,7 +255,7 @@ class Chat extends EventTarget {
     }
 
     async keepOwnPersonasOnline() {
-        const botPersonas = await ownPersonas();
+        const botPersonas = await this.ownPersonas();
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
                 // Refresh instance (somehow stale otherwise).

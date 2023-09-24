@@ -11,10 +11,10 @@ import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 import { deferredPromise } from "skypack:@open-draft/deferred-promise";
 import { until } from "skypack:@open-draft/until";
-import { strictEventEmitter } from "skypack:strict-event-emitter";
+import { strictEventEmitter } from "strict-event-emitter";
 import { logger } from "skypack:@open-draft/logger";
-import { invariant } from "skypack:outvariant";
-import { isNodeProcess } from "skypack:is-node-process";
+import { invariant } from "outvariant";
+import { isNodeProcess } from "is-node-process";
 import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 

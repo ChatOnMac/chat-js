@@ -157,7 +157,7 @@ class ChatParentBridge {
 
         await this.db.addCollections(collections);
 
-        const collectionEntries = Object.entries(db.collections);
+        const collectionEntries = Object.entries(this.db.collections);
         for (const [collectionName, collection] of collectionEntries) {
             const replicationState = await this.createReplicationState(collection);
             const replicationStateKey = this.getReplicationStateKey(collectionName);

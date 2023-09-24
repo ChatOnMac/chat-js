@@ -15,8 +15,8 @@ import { strictEventEmitter } from "strict-event-emitter";
 import { logger } from "@open-draft/logger";
 import { invariant } from "outvariant";
 import { isNodeProcess } from "is-node-process";
-import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';
-import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
+import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);

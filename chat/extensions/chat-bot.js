@@ -1,7 +1,7 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
-//import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/chat.js";
-import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js#nobundle";
+import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@73354e393/chat/modules/chat.js";
+// import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
 
 // Copied from module
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";

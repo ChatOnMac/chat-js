@@ -62,8 +62,6 @@ class ChatParentBridge {
     state;
 
     constructor ({ db, state }) {
-        console.log("con")
-        console.log(state)
         this.db = db;
         this.state = state;
     }

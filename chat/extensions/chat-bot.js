@@ -4,7 +4,7 @@
 // import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
 
 // Copied from module for import map rigging... temporary hack.
-import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
 import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "esm.run:rxdb/plugins/replication";

@@ -1,6 +1,6 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
-import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
 import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";

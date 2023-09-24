@@ -1,6 +1,5 @@
 
 import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/chat.js";
-import browserInterceptors from 'skypack:mswjs/interceptors/presets/browser'
 
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";

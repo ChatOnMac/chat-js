@@ -1,7 +1,6 @@
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
-
 import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";

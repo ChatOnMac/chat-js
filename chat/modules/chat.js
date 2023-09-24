@@ -216,7 +216,7 @@ class Chat extends EventTarget {
     }
 
     static async init({ offerUnusedPersonas }) {
-        consoleProxy();
+        proxyConsole();
 
         const db = await createRxDatabase({
             name: "chat",

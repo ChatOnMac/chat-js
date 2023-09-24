@@ -162,10 +162,10 @@ class ChatParentBridge {
         for (const [collectionName, collection] of collectionEntries) {
             const replicationState = await this.createReplicationState(collection);
             const replicationStateKey = this.getReplicationStateKey(collectionName);
-            state.replications[replicationStateKey] = replicationState;
+            this.state.replications[replicationStateKey] = replicationState;
         }
 
-        for (const replicationState of Object.values(state.replications)) {
+        for (const replicationState of Object.values(this.state.replications)) {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }

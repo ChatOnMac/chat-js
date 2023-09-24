@@ -227,15 +227,18 @@ class Chat extends EventTarget {
             multiInstance: false, // Change this when ported to web etc.
         });
 
-        console.log("33")
-        await this.keepOwnPersonasOnline();
-        console.log("444")
-        this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
-        await this.offerUnusedPersonas();
-        await this.wireUnusedPersonas();
-
         // Invoke the private constructor...
-        return new Chat({ db });
+        const chat = new Chat({ db });
+
+        console.log("33")
+        await chat.keepOwnPersonasOnline();
+        console.log("444")
+        chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
+        await chat.offerUnusedPersonas();
+        await chat.wireUnusedPersonas();
+
+        console.log("555")
+        return chat;
     }
 
     async wireUnusedPersonas() {

@@ -256,6 +256,7 @@ class Chat extends EventTarget {
     }
 
     async ownPersonas() {
+        console.log("own p");
         // TODO: Multiple bots in same room.
         const botPersonas = await this.getBotPersonas(null);
         return botPersonas

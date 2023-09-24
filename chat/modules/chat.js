@@ -101,7 +101,7 @@ class ChatParentBridge {
     
                 batchSize: 50,
                 modifier: (doc) => doc,
-            }
+            },
     
             pull: {
                 async handler(lastCheckpoint, batchSize) {

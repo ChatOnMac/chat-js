@@ -1,5 +1,14 @@
 
 import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/chat.js";
+import browserInterceptors from 'skypack:mswjs/interceptors/presets/browser'
+
+import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
+import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
+import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
+import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
+import { BatchInterceptor } from 'skypack:mswjs/interceptors'
+
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     if (unusedOnlineBots.length > 0) {

@@ -5,8 +5,8 @@ import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@8ea2411/chat/modules/chat.js
 
 // Copied from module for import map rigging... temporary hack.
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
-import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "jsdelivr:rxdb";
+import { RxDBDevModePlugin } from "jsdelivr:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 import { deferredPromise } from "@open-draft/deferred-promise";

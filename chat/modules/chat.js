@@ -47,11 +47,11 @@ function conflictHandler(i) {
 
 class ChatParentBridge {
     db;
-    state;
+    #state;
 
     constructor ({ db, state }) {
         this.db = db;
-        this.state = state;
+        this.#state = state;
     }
 
     async #createReplicationState(collection) {

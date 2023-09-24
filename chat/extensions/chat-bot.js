@@ -216,7 +216,9 @@ class Chat extends EventTarget {
     }
 
     static async init({ offerUnusedPersonas }) {
+        console.log("one")
         consoleProxy();
+        console.log("two")
 
         const db = await createRxDatabase({
             name: "chat",
@@ -225,7 +227,9 @@ class Chat extends EventTarget {
             multiInstance: false, // Change this when ported to web etc.
         });
 
+        console.log("33")
         await this.keepOwnPersonasOnline();
+        console.log("444")
         this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
         await this.offerUnusedPersonas();
         await this.wireUnusedPersonas();
@@ -330,10 +334,8 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     return [botPersona];
 }
 
-console.log("One")
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
-console.log("twoo")
 
 chat.addEventListener("finishedInitialSync", ({ db, replications }) => {
     db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {

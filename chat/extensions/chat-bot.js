@@ -227,6 +227,7 @@ class Chat extends EventTarget {
             multiInstance: false, // Change this when ported to web etc.
         });
 
+        console.log("3...")
         // Invoke the private constructor...
         const chat = new Chat({ db });
 

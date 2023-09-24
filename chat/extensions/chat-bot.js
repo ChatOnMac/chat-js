@@ -9,8 +9,8 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:r
 import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
-import { BatchInterceptor } from 'jsdelivr:mswjs/interceptors';
-import browserInterceptors from 'jsdelivr:mswjs/interceptors/presets/browser';
+import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors';
+import browserInterceptors from 'jsdelivr:@mswjs/interceptors/presets/browser';
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     if (unusedOnlineBots.length > 0) {

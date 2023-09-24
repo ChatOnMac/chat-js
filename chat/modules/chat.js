@@ -2,7 +2,7 @@
 
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "jsdelivr:rxdb";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "jsdelivr:rxdb/dist/lib/index.js";
 import { RxDBDevModePlugin } from "jsdelivr:rxdb/dist/lib/plugins/dev-mode/index.js";
 import { replicateRxCollection } from "jsdelivr:rxdb/dist/lib/plugins/replication/index.js";
 import { getRxStorageMemory } from "jsdelivr:rxdb/dist/lib/plugins/storage-memory/index.js";

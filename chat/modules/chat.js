@@ -152,19 +152,6 @@ class ChatParentBridge {
         }
     }
 
-    async #getProvidedBotsIn(extension, room) {
-        var bots = [];
-        if (room && room.participants && room.participants.length > 0) {
-            let allInRoomMap = await db.collections["persona"].findByIds(room.participants).exec();
-            for (const participant of allInRoomMap.values()) {
-                if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
-                    bots.push(participant);
-                }
-            }
-        }
-        return bots;
-    }
-    
     async syncDocsFromCanonical(collectionName, changedDocs) {
         const replicationStateKey = this.#getReplicationStateKey(collectionName);
         const replicationState = state.replications[replicationStateKey];
@@ -291,6 +278,18 @@ class Chat extends EventTarget {
         return [botPersona];
     }
 
+    async #getProvidedBotsIn(extension, room) {
+        var bots = [];
+        if (room && room.participants && room.participants.length > 0) {
+            let allInRoomMap = await db.collections["persona"].findByIds(room.participants).exec();
+            for (const participant of allInRoomMap.values()) {
+                if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
+                    bots.push(participant);
+                }
+            }
+        }
+        return bots;
+    }
 }
 
 export { Chat };

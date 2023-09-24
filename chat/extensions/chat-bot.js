@@ -132,7 +132,7 @@ class ChatParentBridge {
                         documents,
                         checkpoint,
                     };
-                }.bind(this),
+                },
     
                 batchSize: 10,
                 modifier: (doc) => doc,

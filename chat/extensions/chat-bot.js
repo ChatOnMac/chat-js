@@ -233,8 +233,11 @@ class Chat extends EventTarget {
         const chat = new Chat({ db });
 
         await chat.keepOwnPersonasOnline();
+        console.log("3.1...")
         chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
+        console.log("4...")
         await chat.offerUnusedPersonas();
+        console.log("4.1...")
         await chat.wireUnusedPersonas();
 
         console.log("555")

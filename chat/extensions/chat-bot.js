@@ -19,7 +19,7 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
 
-chat.addEventListener)("finishedInitialSync", ({ db, replications }) => {
+chat.addEventListener("finishedInitialSync", ({ db, replications }) => {
     db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {
         if (documentData.createdAt < EPOCH.getTime()) {
             return;

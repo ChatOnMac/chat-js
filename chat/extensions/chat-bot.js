@@ -211,6 +211,7 @@ class Chat extends EventTarget {
     state = { replications: {}, canonicalDocumentChanges: {} };
 
     constructor ({ db }) {
+        super();
         this.db = db;
         this.parentBridge = new ChatParentBridge({ db, state: this.state });
     }
@@ -231,9 +232,7 @@ class Chat extends EventTarget {
         // Invoke the private constructor...
         const chat = new Chat({ db });
 
-        console.log("33")
         await chat.keepOwnPersonasOnline();
-        console.log("444")
         chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
         await chat.offerUnusedPersonas();
         await chat.wireUnusedPersonas();

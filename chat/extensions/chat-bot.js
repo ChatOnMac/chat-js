@@ -256,6 +256,7 @@ class Chat extends EventTarget {
     }
 
     async keepOwnPersonasOnline() {
+        console.log("keep")
         const botPersonas = await ownPersonas();
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {

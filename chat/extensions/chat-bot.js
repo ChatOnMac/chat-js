@@ -22,7 +22,7 @@ import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/
 //addRxPlugin(RxDBDevModePlugin);
 
 
-
+/*
 * The conflict handler gets 3 input properties:
 * - assumedMasterState: The state of the document that is assumed to be on the master branch
 * - newDocumentState: The new document state of the fork branch (=client) that RxDB want to write to the master

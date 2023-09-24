@@ -7,8 +7,8 @@ import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 
-import { BatchInterceptor } from 'unpkg:mswjs/interceptors'
-import browserInterceptors from 'unpkg:mswjs/interceptors/presets/browser'
+import { BatchInterceptor } from 'jsdelivr:mswjs/interceptors';
+import browserInterceptors from 'jsdelivr:mswjs/interceptors/presets/browser';
 
 function installNativeHostBehaviors() {
     const interceptor = new BatchInterceptor({

@@ -1,8 +1,10 @@
 
 import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js/chat/modules/chat.js";
 
-
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
+    if (unusedOnlineBots.length > 0) {
+        return []
+    }
     const botPersona = await this.db.collections["persona"].insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",
@@ -18,176 +20,129 @@ const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
 
 chat.addEventListener)("finishedInitialSync", ({ db, replications }) => {
-});
+    db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {
+        if (documentData.createdAt < EPOCH.getTime()) {
+            return;
+        }
+        const personaCollection = db.collections["persona"];
+        const persona = await personaCollection
+            .findOne({
+                selector: { id: documentData.sender },
+            })
+            .exec();
+        if (persona?.personaType !== "user") {
+            return;
+        }
 
+        // Build message history.
+        const messages = await collection
+            .find({
+                selector: {
+                    room: documentData.room,
+                },
+                limit: 10, // TODO: This is constrained by the model's token limit.
+                sort: [{ createdAt: "desc" }],
+            })
+            .exec();
 
-const ChatOnMacPlugin = {
-    name: "chatonmac",
-    rxdb: true,
-    hooks: {
-        createRxCollection: {
-            after: async (args) => {
-                const db = args.collection.database;
-                const collection = args.collection;
+        const messageHistory = await Promise.all(
+            messages.map(async ({ content, persona }) => {
+                const foundPersona = await personaCollection
+                    .findOne({ selector: { id: persona } })
+                    .exec();
+                return {
+                    role:
+                    foundPersona.personaType === "bot" ? "assistant" : "user",
+                    content,
+                };
+            })
+        );
+        messageHistory.sort((a, b) => b - a);
+        const room = await db.collections["room"].findOne(documentData.room).exec();
+        const botPersonas = await getBotPersonas(room);
+        const botPersona = botPersonas.length ? botPersonas[0] : null;
+        if (!botPersona) {
+            console.log("No matching bot to emit from.")
+            return;
+        }
 
-                if (collection.name === "event") {
-                    collection.insert$.subscribe(async ({ documentData, collectionName }) => {
-                        if (documentData.createdAt < EPOCH.getTime()) {
-                            return;
-                        }
-                        const personaCollection = db.collections["persona"];
-                        const persona = await personaCollection
-                            .findOne({
-                                selector: { id: documentData.sender },
-                            })
-                            .exec();
-                        if (persona?.personaType !== "user") {
-                            return;
-                        }
+        if (!botPersona.selectedModel) {
+            botPersona.selectedModel = botPersona.modelOptions[0];
+        }
 
-                        // Build message history.
-                        const messages = await collection
-                            .find({
-                                selector: {
-                                    room: documentData.room,
-                                },
-                                limit: 10, // TODO: This is constrained by the model's token limit.
-                                sort: [{ createdAt: "desc" }],
-                            })
-                            .exec();
+        var systemPrompt = "";
+        if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
+            if (botPersona.customInstructionForContext) {
+                systemPrompt += botPersona.customInstructionForContext.trim() + "\n\n"
+            }
+            if (botPersona.customInstructionForResponses) {
+                systemPrompt += botPersona.customInstructionForResponses.trim() + "\n\n"
+            }
+        } else {
+            systemPrompt = "You are a helpful assistant.";
+        }
+        systemPrompt = systemPrompt.trim();
 
-                        const messageHistory = await Promise.all(
-                            messages.map(async ({ content, persona }) => {
-                                const foundPersona = await personaCollection
-                                    .findOne({ selector: { id: persona } })
-                                    .exec();
-                                return {
-                                    role:
-                                    foundPersona.personaType === "bot" ? "assistant" : "user",
-                                    content,
-                                };
-                            })
-                        );
-                        messageHistory.sort((a, b) => b - a);
-                        const room = await db.collections["room"].findOne(documentData.room).exec();
-                        const botPersonas = await getBotPersonas(room);
-                        const botPersona = botPersonas.length ? botPersonas[0] : null;
-                        if (!botPersona) {
-                            console.log("No matching bot to emit from.")
-                            return;
-                        }
-
-                        if (!botPersona.selectedModel) {
-                            botPersona.selectedModel = botPersona.modelOptions[0];
-                        }
-
-                        var systemPrompt = "";
-                        if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
-                            if (botPersona.customInstructionForContext) {
-                                systemPrompt += botPersona.customInstructionForContext.trim() + "\n\n"
-                            }
-                            if (botPersona.customInstructionForResponses) {
-                                systemPrompt += botPersona.customInstructionForResponses.trim() + "\n\n"
-                            }
-                        } else {
-                            systemPrompt = "You are a helpful assistant.";
-                        }
-                        systemPrompt = systemPrompt.trim();
-
-                        try {
-                            const resp = await fetch(
-                                "code://code/load/api.openai.com/v1/chat/completions",
-                                {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-Chat-Trace-Event": documentData.id,
-                                    },
-                                    body: JSON.stringify({
-                                        model: botPersona.selectedModel,
-                                        temperature: botPersona.modelTemperature,
-                                        messages: [
-                                            {
-                                                role: "system",
-                                                content: systemPrompt,
-                                            },
-                                            ...messageHistory,
-                                            {
-                                                role: "user",
-                                                content: documentData.content,
-                                            },
-                                        ],
-                                    }),
-                                }
-                            );
-
-                            const data = await resp.json();
-
-                            if (!resp.ok) {
-                                 if (data.error.code === 'context_length_exceeded') {
-                                    
-                                 }
-
-                                throw new Error(data.error.message);
-                            }
-
-                            const content = data.choices[0].message.content;
-                            const createdAt = new Date().getTime();
-
-                            collection.insert({
-                                id: crypto.randomUUID(),
-                                content,
-                                type: "message",
-                                room: documentData.room,
-                                sender: botPersona.id,
-                                createdAt,
-                                modifiedAt: createdAt,
-                            });
-                        } catch (error) {
-                            var eventDoc = await db.collections["event"].findOne(documentData.id).exec();
-                            await eventDoc.incrementalModify((docData) => {
-                                docData.failureMessages = docData.failureMessages.concat(error);
-                                docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
-                                return docData;
-                            });
-    /*for (const replicationState of Object.values(state.replications)) {
-        replicationState.reSync();
-        await replicationState.awaitInSync();
-    }*/
-                        }
-                    });
+        try {
+            const resp = await fetch(
+                "code://code/load/api.openai.com/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Chat-Trace-Event": documentData.id,
+                    },
+                    body: JSON.stringify({
+                        model: botPersona.selectedModel,
+                        temperature: botPersona.modelTemperature,
+                        messages: [
+                            {
+                                role: "system",
+                                content: systemPrompt,
+                            },
+                            ...messageHistory,
+                            {
+                                role: "user",
+                                content: documentData.content,
+                            },
+                        ],
+                    }),
                 }
-            },
-        },
-    },
-};
+            );
 
-addRxPlugin(ChatOnMacPlugin);
+            const data = await resp.json();
 
+            if (!resp.ok) {
+                 if (data.error.code === 'context_length_exceeded') {
+                    
+                 }
 
-function getReplicationStateKey(collectionName) {
-    return `${collectionName}ReplicationState`;
-}
+                throw new Error(data.error.message);
+            }
 
-function getCanonicalDocumentChangesKey(collectionName) {
-    return `${collectionName}CanonicalDocumentChanges`;
-}
+            const content = data.choices[0].message.content;
+            const createdAt = new Date().getTime();
 
-async function createCollectionsFromCanonical(collections) {
-}
-
-
-
-
-// // Public API.
-// window.chat = await Chat.init()
-// //window.conflictHandler = conflictHandler;
-// window.createCollectionsFromCanonical = createCollectionsFromCanonical;
-// window.syncDocsFromCanonical = syncDocsFromCanonical;
-// window.finishedSyncingDocsFromCanonical = finishedSyncingDocsFromCanonical;
-
-// // Debug.
-// window._db = db;
-// window._state = state;
-
-
+            collection.insert({
+                id: crypto.randomUUID(),
+                content,
+                type: "message",
+                room: documentData.room,
+                sender: botPersona.id,
+                createdAt,
+                modifiedAt: createdAt,
+            });
+        } catch (error) {
+            var eventDoc = await db.collections["event"].findOne(documentData.id).exec();
+            await eventDoc.incrementalModify((docData) => {
+                docData.failureMessages = docData.failureMessages.concat(error);
+                docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
+                return docData;
+            });
+/*for (const replicationState of Object.values(state.replications)) {
+replicationState.reSync();
+await replicationState.awaitInSync();
+}*/
+        }
+    });
+});

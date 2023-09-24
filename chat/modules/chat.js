@@ -89,7 +89,7 @@ class ChatParentBridge {
                     //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
     
                     const canonicalDocumentChangesKey =
-                        getCanonicalDocumentChangesKey(collectionName);
+                        this.#getCanonicalDocumentChangesKey(collectionName);
                     var documents = [];
                     for (let i = 0; i < batchSize; i++) {
                         const el = (state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
@@ -124,6 +124,14 @@ class ChatParentBridge {
         return replicationState;
     }
 
+    #getReplicationStateKey(collectionName) {
+        return `${collectionName}ReplicationState`;
+    }
+    
+    #getCanonicalDocumentChangesKey(collectionName) {
+        return `${collectionName}CanonicalDocumentChanges`;
+    }
+    
     async createCollectionsFromCanonical(collections) {
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
@@ -134,7 +142,7 @@ class ChatParentBridge {
         const collectionEntries = Object.entries(db.collections);
         for (const [collectionName, collection] of collectionEntries) {
             const replicationState = await this.#createReplicationState(collection);
-            const replicationStateKey = getReplicationStateKey(collectionName);
+            const replicationStateKey = this.#getReplicationStateKey(collectionName);
             state.replications[replicationStateKey] = replicationState;
         }
 
@@ -158,11 +166,11 @@ class ChatParentBridge {
     }
     
     async syncDocsFromCanonical(collectionName, changedDocs) {
-        const replicationStateKey = getReplicationStateKey(collectionName);
+        const replicationStateKey = this.#getReplicationStateKey(collectionName);
         const replicationState = state.replications[replicationStateKey];
     
         const canonicalDocumentChangesKey =
-            getCanonicalDocumentChangesKey(collectionName);
+            this.#getCanonicalDocumentChangesKey(collectionName);
     
         if (!state.canonicalDocumentChanges[canonicalDocumentChangesKey]) {
             state.canonicalDocumentChanges[canonicalDocumentChangesKey] = [];
@@ -222,10 +230,13 @@ class Chat extends EventTarget {
 
     async #wireUnusedPersonas() {
         const onlineBots = await this.ownPersonas();
-        await this.db.collections["room"].find().$.subscribe(rooms => {
-            rooms.
+        const offerUnusedPersonas = this.offerUnusedPersonas;
+        await this.db.collections["room"].$.subscribe(async rooms => {
+            const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
+            const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
+            const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
+            await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
         });
-        await this.offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
     }
 
     async ownPersonas() {

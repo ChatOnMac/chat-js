@@ -245,9 +245,11 @@ class Chat extends EventTarget {
     }
 
     async wireUnusedPersonas() {
+        console.log("wire unused")
         const onlineBots = await this.ownPersonas();
         const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
+        console.log("wire unused - sub incoming!")
             const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
             const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
             const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();

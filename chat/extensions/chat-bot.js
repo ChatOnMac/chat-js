@@ -1,5 +1,5 @@
 
-import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js/chat/modules/chat.js";
+import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/chat.js";
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     if (unusedOnlineBots.length > 0) {

@@ -2,10 +2,10 @@
 
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
-import { createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
-import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
-import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "jsdelivr:rxdb";
+import { RxDBDevModePlugin } from "jsdelivr:rxdb/plugins/dev-mode";
+import { replicateRxCollection } from "jsdelivr:rxdb/plugins/replication";
+import { getRxStorageMemory } from "jsdelivr:rxdb/plugins/storage-memory";
 import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
 import { strictEventEmitter } from "strict-event-emitter";

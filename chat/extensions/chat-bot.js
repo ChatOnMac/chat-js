@@ -1,14 +1,14 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
-import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@8ea2411/chat/modules/chat.js";
+import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@35a2b3c/chat/modules/chat.js";
 // import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
 
 // Copied from module for import map rigging... temporary hack.
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "jsdelivr:rxdb";
 import { RxDBDevModePlugin } from "jsdelivr:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
-import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
+import { replicateRxCollection } from "jsdelivr:rxdb/plugins/replication";
+import { getRxStorageMemory } from "jsdelivr:rxdb/plugins/storage-memory";
 import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
 import { strictEventEmitter } from "strict-event-emitter";

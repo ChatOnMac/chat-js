@@ -47,16 +47,16 @@ function conflictHandler(i) {
 
 class ChatParentBridge {
     db;
-    #state;
+    state;
 
     constructor ({ db, state }) {
         console.log("con")
         console.log(state)
         this.db = db;
-        this.#state = state;
+        this.state = state;
     }
 
-    async #createReplicationState(collection) {
+    async createReplicationState(collection) {
         const { name: collectionName } = collection;
     
         const replicationState = replicateRxCollection({
@@ -91,10 +91,10 @@ class ChatParentBridge {
                     //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
     
                     const canonicalDocumentChangesKey =
-                        this.#getCanonicalDocumentChangesKey(collectionName);
+                        this.getCanonicalDocumentChangesKey(collectionName);
                     var documents = [];
                     for (let i = 0; i < batchSize; i++) {
-                        const el = (this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
+                        const el = (this.state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
                         if (el) {
                             documents.push(el);
                         } else {
@@ -126,11 +126,11 @@ class ChatParentBridge {
         return replicationState;
     }
 
-    #getReplicationStateKey(collectionName) {
+    getReplicationStateKey(collectionName) {
         return `${collectionName}ReplicationState`;
     }
     
-    #getCanonicalDocumentChangesKey(collectionName) {
+    getCanonicalDocumentChangesKey(collectionName) {
         return `${collectionName}CanonicalDocumentChanges`;
     }
     
@@ -143,8 +143,8 @@ class ChatParentBridge {
 
         const collectionEntries = Object.entries(db.collections);
         for (const [collectionName, collection] of collectionEntries) {
-            const replicationState = await this.#createReplicationState(collection);
-            const replicationStateKey = this.#getReplicationStateKey(collectionName);
+            const replicationState = await this.createReplicationState(collection);
+            const replicationStateKey = this.getReplicationStateKey(collectionName);
             state.replications[replicationStateKey] = replicationState;
         }
 
@@ -155,23 +155,23 @@ class ChatParentBridge {
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
-        const replicationStateKey = this.#getReplicationStateKey(collectionName);
-        const replicationState = this.#state.replications[replicationStateKey];
+        const replicationStateKey = this.getReplicationStateKey(collectionName);
+        const replicationState = this.state.replications[replicationStateKey];
     
         const canonicalDocumentChangesKey =
-            this.#getCanonicalDocumentChangesKey(collectionName);
+            this.getCanonicalDocumentChangesKey(collectionName);
     
-        if (!this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey]) {
-            this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey] = [];
+        if (!this.state.canonicalDocumentChanges[canonicalDocumentChangesKey]) {
+            this.state.canonicalDocumentChanges[canonicalDocumentChangesKey] = [];
         }
-        this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey].push(...changedDocs);
+        this.state.canonicalDocumentChanges[canonicalDocumentChangesKey].push(...changedDocs);
     
         replicationState.reSync();
         await replicationState.awaitInSync();
     }
 
     async replicationInSync() {
-        for (const replicationState of Object.values(this.#state.replications)) {
+        for (const replicationState of Object.values(this.state.replications)) {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
@@ -182,8 +182,8 @@ class ChatParentBridge {
         await this.replicationInSync()
     
         console.log("gonna state..")
-        console.log(this.#state)
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: this.#state.replications }));
+        console.log(this.state)
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: this.state.replications }));
     }
 }
 
@@ -192,12 +192,12 @@ class Chat extends EventTarget {
     parentBridge;
     offerUnusedPersonas = () => { };
 
-    #onlineAt = new Date();
-    #state = { replications: {}, canonicalDocumentChanges: {} };
+    onlineAt = new Date();
+    state = { replications: {}, canonicalDocumentChanges: {} };
 
     constructor ({ db }) {
         this.db = db;
-        this.parentBridge = new ChatParentBridge({ db, state: this.#state });
+        this.parentBridge = new ChatParentBridge({ db, state: this.state });
     }
 
     static async init({ offerUnusedPersonas }) {
@@ -210,16 +210,16 @@ class Chat extends EventTarget {
             multiInstance: false, // Change this when ported to web etc.
         });
 
-        await this.#keepOwnPersonasOnline();
+        await this.keepOwnPersonasOnline();
         this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
         await this.offerUnusedPersonas();
-        await this.#wireUnusedPersonas();
+        await this.wireUnusedPersonas();
 
         // Invoke the private constructor...
         return new Chat({ db });
     }
 
-    async #wireUnusedPersonas() {
+    async wireUnusedPersonas() {
         const onlineBots = await this.ownPersonas();
         const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
@@ -236,7 +236,7 @@ class Chat extends EventTarget {
         return botPersonas
     }
 
-    async #keepOwnPersonasOnline() {
+    async keepOwnPersonasOnline() {
         const botPersonas = await ownPersonas();
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
@@ -254,9 +254,9 @@ class Chat extends EventTarget {
         }
     }
 
-    async #getBotPersonas(room) {
+    async getBotPersonas(room) {
         let extension = await this.db.collections["code_extension"].findOne().exec();
-        let botPersonas = await this.#getProvidedBotsIn(extension, room);
+        let botPersonas = await this.getProvidedBotsIn(extension, room);
         if (botPersonas.length > 0) {
             return botPersonas;
         }
@@ -264,7 +264,7 @@ class Chat extends EventTarget {
         let allRooms = await this.db.collections["room"].find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
-            botPersonas = await this.#getProvidedBotsIn(extension, otherRoom);
+            botPersonas = await this.getProvidedBotsIn(extension, otherRoom);
             if (botPersonas.length > 0) {
                 bots.push(...botPersonas);
             }
@@ -282,7 +282,7 @@ class Chat extends EventTarget {
         return [botPersona];
     }
 
-    async #getProvidedBotsIn(extension, room) {
+    async getProvidedBotsIn(extension, room) {
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
             let allInRoomMap = await db.collections["persona"].findByIds(room.participants).exec();
@@ -297,3 +297,4 @@ class Chat extends EventTarget {
 }
 
 export { Chat };
+

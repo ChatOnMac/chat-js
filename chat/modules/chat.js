@@ -1,3 +1,5 @@
+// This will be cleaned up for easier reuse soon. --ChatOnMac
+
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
@@ -5,8 +7,8 @@ import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 
-import { BatchInterceptor } from 'skypack:mswjs/interceptors'
-import browserInterceptors from 'skypack:mswjs/interceptors/presets/browser'
+import { BatchInterceptor } from 'unpkg:mswjs/interceptors'
+import browserInterceptors from 'unpkg:mswjs/interceptors/presets/browser'
 
 function installNativeHostBehaviors() {
     const interceptor = new BatchInterceptor({

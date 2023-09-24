@@ -50,6 +50,8 @@ class ChatParentBridge {
     #state;
 
     constructor ({ db, state }) {
+        console.log("con")
+        console.log(state)
         this.db = db;
         this.#state = state;
     }
@@ -92,7 +94,7 @@ class ChatParentBridge {
                         this.#getCanonicalDocumentChangesKey(collectionName);
                     var documents = [];
                     for (let i = 0; i < batchSize; i++) {
-                        const el = (state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
+                        const el = (this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
                         if (el) {
                             documents.push(el);
                         } else {
@@ -154,15 +156,15 @@ class ChatParentBridge {
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
         const replicationStateKey = this.#getReplicationStateKey(collectionName);
-        const replicationState = state.replications[replicationStateKey];
+        const replicationState = this.#state.replications[replicationStateKey];
     
         const canonicalDocumentChangesKey =
             this.#getCanonicalDocumentChangesKey(collectionName);
     
-        if (!state.canonicalDocumentChanges[canonicalDocumentChangesKey]) {
-            state.canonicalDocumentChanges[canonicalDocumentChangesKey] = [];
+        if (!this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey]) {
+            this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey] = [];
         }
-        state.canonicalDocumentChanges[canonicalDocumentChangesKey].push(...changedDocs);
+        this.#state.canonicalDocumentChanges[canonicalDocumentChangesKey].push(...changedDocs);
     
         replicationState.reSync();
         await replicationState.awaitInSync();
@@ -179,7 +181,7 @@ class ChatParentBridge {
         console.log("finishedSyncingDocsFromCan()")
         await this.replicationInSync()
     
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: state.replications }));
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: this.#state.replications }));
     }
 }
 

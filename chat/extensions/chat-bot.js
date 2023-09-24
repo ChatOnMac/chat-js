@@ -5,10 +5,10 @@
 
 // Copied from module for import map rigging... temporary hack.
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
-import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
-import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
+import { RxDBDevModePlugin } from "skyesm.runpack:rxdb/plugins/dev-mode";
+import { replicateRxCollection } from "esm.run:rxdb/plugins/replication";
+import { getRxStorageMemory } from "esm.run:rxdb/plugins/storage-memory";
 import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
 import { strictEventEmitter } from "strict-event-emitter";

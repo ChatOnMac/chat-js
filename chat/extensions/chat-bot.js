@@ -264,7 +264,9 @@ class Chat extends EventTarget {
     async keepOwnPersonasOnline() {
         console.log("keep")
         const botPersonas = await ownPersonas();
+        console.log("keep.1")
         for (const botPersona of botPersonas) {
+        console.log("keep.1.1")
             if (!botPersona.online) {
                 // Refresh instance (somehow stale otherwise).
                 let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();

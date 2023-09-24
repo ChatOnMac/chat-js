@@ -156,7 +156,7 @@ class ChatParentBridge {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
 
-        await db.addCollections(collections);
+        await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(db.collections);
         for (const [collectionName, collection] of collectionEntries) {
@@ -200,7 +200,7 @@ class ChatParentBridge {
     
         console.log("gonna state..")
         console.log(this.state)
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db, replications: this.state.replications }));
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
 
         await this.onFinishedSyncingDocsFromCanonical();
     }
@@ -315,7 +315,7 @@ class Chat extends EventTarget {
         if (this.db.collections.length === 0) { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
-            let allInRoomMap = await db.collections["persona"].findByIds(room.participants).exec();
+            let allInRoomMap = await this.db.collections["persona"].findByIds(room.participants).exec();
             for (const participant of allInRoomMap.values()) {
                 if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
                     bots.push(participant);

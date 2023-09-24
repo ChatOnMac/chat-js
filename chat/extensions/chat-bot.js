@@ -3,18 +3,18 @@
 import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@ad0c439/chat/modules/chat.js";
 // import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
 
-// Copied from module
+// Copied from module for import map rigging... temporary hack.
 import { consoleProxy } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
+import { createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
 import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
-import { deferredPromise } from "@open-draft/deferred-promise";
-import { until } from "@open-draft/until";
-import { strictEventEmitter } from "strict-event-emitter";
-import { logger } from "@open-draft/logger";
-import { invariant } from "outvariant";
-import { isNodeProcess } from "is-node-process";
+import { deferredPromise } from "skypack:@open-draft/deferred-promise";
+import { until } from "skypack:@open-draft/until";
+import { strictEventEmitter } from "skypack:strict-event-emitter";
+import { logger } from "skypack:@open-draft/logger";
+import { invariant } from "skypack:outvariant";
+import { isNodeProcess } from "skypack:is-node-process";
 import { BatchInterceptor } from 'jsdelivr:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'jsdelivr:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 

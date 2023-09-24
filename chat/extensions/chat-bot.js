@@ -9,7 +9,7 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:r
 import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
-import { until } from "@open-draft/deferred-promise";
+import { deferredPromise } from "@open-draft/deferred-promise";
 import { until } from "@open-draft/until";
 import { invariant } from "outvariant";
 import { isNodeProcess } from "is-node-process";

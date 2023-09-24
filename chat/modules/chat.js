@@ -6,7 +6,7 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:r
 import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "esm.run:rxdb/plugins/replication";
 import { getRxStorageMemory } from "esm.run:rxdb/plugins/storage-memory";
-import { deferredPromise } from "esm.run:@open-draft/deferred-promise";
+import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
 import { until } from "esm.run:@open-draft/until";
 import { strictEventEmitter } from "esm.run:strict-event-emitter";
 import { Logger } from "esm.run:@open-draft/logger";

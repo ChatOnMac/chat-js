@@ -283,7 +283,9 @@ class Chat extends EventTarget {
     }
 
     async getBotPersonas(room) {
+        console.log("get bot personas...")
         let extension = await this.db.collections["code_extension"].findOne().exec();
+        console.log("got a bot personas...")
         let botPersonas = await this.getProvidedBotsIn(extension, room);
         if (botPersonas.length > 0) {
             return botPersonas;

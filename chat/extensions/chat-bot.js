@@ -22,9 +22,6 @@ import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/
 //addRxPlugin(RxDBDevModePlugin);
 
 
-console.log("testing...")
-
-
 
 /**
  * The conflict handler gets 3 input properties:
@@ -333,8 +330,10 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     return [botPersona];
 }
 
+console.log("One")
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
+console.log("twoo")
 
 chat.addEventListener("finishedInitialSync", ({ db, replications }) => {
     db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {

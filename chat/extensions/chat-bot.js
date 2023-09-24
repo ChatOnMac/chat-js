@@ -8,6 +8,7 @@ import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
 import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
 import { BatchInterceptor } from 'skypack:mswjs/interceptors'
+import browserInterceptors from 'skypack:mswjs/interceptors/presets/browser'
 
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {

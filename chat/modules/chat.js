@@ -203,8 +203,9 @@ class ChatParentBridge {
         console.log("gonna state..")
         console.log(this.state)
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
-
+        console.log("eh")
         await this.onFinishedSyncingDocsFromCanonical();
+        console.log("eh2")
     }
 }
 
@@ -219,7 +220,7 @@ class Chat extends EventTarget {
     constructor ({ db }) {
         super();
         this.db = db;
-        const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical;
+        const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical.bind(this);
         this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical });
     }
 

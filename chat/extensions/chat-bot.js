@@ -131,7 +131,7 @@ class ChatParentBridge {
     
             push: {
                 async handler(docs) {
-                    console.log("Called push handler with: ", docs);
+                    //console.log("Called push handler with: ", docs);
                     window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
                         collectionName: collection.name,
                         changedDocs: docs.map((row) => {
@@ -147,6 +147,8 @@ class ChatParentBridge {
     
             pull: {
                 async handler(lastCheckpoint, batchSize) {
+                    console.log("pull handler")
+                    console.log(batchSize);
                     return await pullHandler(lastCheckpoint, batchSize);
                 },
                 batchSize: 10,

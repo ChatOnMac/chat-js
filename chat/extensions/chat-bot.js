@@ -364,9 +364,9 @@ export { Chat, installNativeHostBehaviors };
 
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
-    console.log("OFFER UNUSED?")
+    console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
-    console.log("OFFER UNUSED? nah")
+    console.log("OFFER UNUSED? nah");
         return []
     }
     console.log("OFFER UNUSED? yah")

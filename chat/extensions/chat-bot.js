@@ -239,6 +239,8 @@ class Chat extends EventTarget {
 
     async onFinishedSyncingDocsFromCanonical() {
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
+
+        return;
         await this.keepOwnPersonasOnline();
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         await this.offerUnusedPersonas();
@@ -387,8 +389,6 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
 }
 
 chat.addEventListener("finishedInitialSync", (event) => {
-    return;
-
     console.log("finishedInitialSync");
     const db = event.detail.db;
     const replications = event.detail.replications;

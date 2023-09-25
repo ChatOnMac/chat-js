@@ -88,7 +88,7 @@ class ChatParentBridge {
     async createReplicationState(collection) {
         const { name: collectionName } = collection;
     
-        const pullHandler = (async (lastCheckpoint, batchSize) => {
+        const pullHandler = async (lastCheckpoint, batchSize) => {
             console.log("Called pull handler with: ", lastCheckpoint, batchSize);
 
             const canonicalDocumentChangesKey =
@@ -117,7 +117,7 @@ class ChatParentBridge {
                 documents,
                 checkpoint,
             };
-        }).bind(this);
+        };
 
         const replicationState = replicateRxCollection({
             collection,
@@ -146,11 +146,7 @@ class ChatParentBridge {
             },
     
             pull: {
-                async handler(lastCheckpoint, batchSize) {
-                    console.log("pull handler")
-                    console.log(batchSize);
-                    return await pullHandler(lastCheckpoint, batchSize);
-                },
+                handler: pullHandler.bind(this),
                 batchSize: 10,
                 modifier: (doc) => doc,
             },

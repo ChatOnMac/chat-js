@@ -89,7 +89,7 @@ class ChatParentBridge {
         const { name: collectionName } = collection;
     
         const pullHandler = (async (lastCheckpoint, batchSize) => {
-            //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
+            console.log("Called pull handler with: ", lastCheckpoint, batchSize);
 
             const canonicalDocumentChangesKey =
                 this.getCanonicalDocumentChangesKey(collectionName);
@@ -131,7 +131,7 @@ class ChatParentBridge {
     
             push: {
                 async handler(docs) {
-                    //console.log("Called push handler with: ", docs);
+                    console.log("Called push handler with: ", docs);
                     window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
                         collectionName: collection.name,
                         changedDocs: docs.map((row) => {
@@ -236,17 +236,11 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
-        console.log("onFinishedSyncingDocsFromCanonical()")
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
-        console.log("onFinishedSyncingDocsFromCanonical() -1")
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
-        console.log("onFinishedSyncingDocsFromCanonical() -2")
-        console.log(this.offerUnusedPersonas);
         await this.offerUnusedPersonas();
-        console.log("onFinishedSyncingDocsFromCanonical() -3")
         await this.wireUnusedPersonas();
-        console.log("onFinishedSyncingDocsFromCanonical() - done")
     }
 
     static async init({ offerUnusedPersonas }) {
@@ -367,11 +361,9 @@ export { Chat, installNativeHostBehaviors };
 
 
 
-console.log("well2...")
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
 
-console.log("well...")
 async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
     console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
@@ -393,7 +385,6 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
 }
 
 
-console.log("well 4..")
 chat.addEventListener("finishedInitialSync", (event) => {
     console.log("finishedInitialSync");
     const db = event.detail.db;

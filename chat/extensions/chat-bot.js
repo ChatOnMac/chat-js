@@ -359,7 +359,7 @@ export { Chat, installNativeHostBehaviors };
 
 
 
-async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
+const offerUnusedPersonas = async ({ botsInRooms, unusedOnlineBots }) => {
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
     // console.log("OFFER UNUSED? nah");
@@ -376,7 +376,7 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     });
     // console.log("OFFER UNUSED? yah go")
     return [botPersona];
-}
+};
 
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
@@ -390,9 +390,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
         }
         const personaCollection = db.collections["persona"];
         const persona = await personaCollection
-            .findOne({
-                selector: { id: documentData.sender },
-            })
+            .findOne(documentData.sender)
             .exec();
         if (persona?.personaType !== "user") {
             return;
@@ -412,7 +410,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
         const messageHistory = await Promise.all(
             messages.map(async ({ content, persona }) => {
                 const foundPersona = await personaCollection
-                    .findOne({ selector: { id: persona } })
+                    .findOne(persona)
                     .exec();
                 return {
                     role:

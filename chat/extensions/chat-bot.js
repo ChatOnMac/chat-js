@@ -232,7 +232,7 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
         chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
         await this.offerUnusedPersonas();
@@ -347,6 +347,7 @@ export { Chat, installNativeHostBehaviors };
 
 
 
+
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
     if (unusedOnlineBots.length > 0) {
         return []
@@ -365,9 +366,9 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
 
-chat.addEventListener("finishedInitialSync", (args) => {
-    const db = args.db;
-    const replications = args.replications;
+chat.addEventListener("finishedInitialSync", (event) => {
+    const db = event.detail.db;
+    const replications = event.detail.replications;
     db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {
         if (documentData.createdAt < EPOCH.getTime()) {
             return;

@@ -348,8 +348,7 @@ class Chat extends EventTarget {
     }
 }
 
-console.log("well1...")
-// export { Chat, installNativeHostBehaviors };
+export { Chat, installNativeHostBehaviors };
 
 
 
@@ -361,6 +360,7 @@ console.log("well1...")
 
 console.log("well...")
 async function offerUnusedPersonas  ({ botsInRooms, unusedOnlineBots }) {
+console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
     // console.log("OFFER UNUSED? nah");
@@ -379,9 +379,11 @@ async function offerUnusedPersonas  ({ botsInRooms, unusedOnlineBots }) {
     return [botPersona];
 }
 
+console.log("well2...")
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;
 
+console.log("well 4..")
 chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
     const replications = event.detail.replications;

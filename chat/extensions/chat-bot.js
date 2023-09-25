@@ -351,7 +351,7 @@ class Chat extends EventTarget {
     }
 }
 
-export { Chat, installNativeHostBehaviors };
+// export { Chat, installNativeHostBehaviors };
 
 
 
@@ -383,7 +383,6 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
     // console.log("OFFER UNUSED? yah go")
     return [botPersona];
 }
-
 
 chat.addEventListener("finishedInitialSync", (event) => {
     console.log("finishedInitialSync");

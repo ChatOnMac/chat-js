@@ -15,6 +15,9 @@ import { isNodeProcess } from "esm.run:is-node-process";
 import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
+// TODO: Remove !!
+addRxPlugin(RxDBDevModePlugin);
+
 function installNativeHostBehaviors() {
     const interceptor = new BatchInterceptor({
         name: 'my-interceptor',

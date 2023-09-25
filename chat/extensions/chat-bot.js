@@ -394,9 +394,10 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
 
 console.log("well 4..")
 chat.addEventListener("finishedInitialSync", (event) => {
+    console.log("finishedInitialSync");
     const db = event.detail.db;
     const replications = event.detail.replications;
-    db.collections["event"].insert$.subscribe(async ({ documentData, collectionName }) => {
+    db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
         if (documentData.createdAt < EPOCH.getTime()) {
             return;
         }
@@ -507,7 +508,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
                 modifiedAt: createdAt,
             });
         } catch (error) {
-            var eventDoc = await db.collections["event"].findOne(documentData.id).exec();
+            var eventDoc = await db.collections.event.findOne(documentData.id).exec();
             await eventDoc.incrementalModify((docData) => {
                 docData.failureMessages = docData.failureMessages.concat(error);
                 docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);

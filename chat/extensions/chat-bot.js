@@ -7,7 +7,9 @@
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);
 
-
+// From: https://github.com/kofrasa/mingo/tree/49f6f98e2432c9f389cd65e4a7e27f4e004c6a26#loading-operators
+// Note that doing this effectively imports the entire library into your bundle and unused operators cannot be tree shaked
+import "esm.run:mingo/init/system";
 
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 

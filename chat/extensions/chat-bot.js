@@ -4,20 +4,6 @@
 // import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
 
 // Copied from module for import map rigging... temporary hack.
-import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
-import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "esm.run:rxdb/plugins/replication";
-import { getRxStorageMemory } from "esm.run:rxdb/plugins/storage-memory";
-import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
-import { until } from "esm.run:@open-draft/until";
-import { Emitter } from "esm.run:strict-event-emitter";
-import { Logger } from "esm.run:@open-draft/logger";
-import { invariant } from "esm.run:outvariant";
-import { isNodeProcess } from "esm.run:is-node-process";
-import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
-import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
-
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);
 

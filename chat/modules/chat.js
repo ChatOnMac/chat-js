@@ -226,7 +226,7 @@ class Chat extends EventTarget {
     async onFinishedSyncingDocsFromCanonical() {
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
-        chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
+        this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
         await this.offerUnusedPersonas();
         await this.wireUnusedPersonas();
     }
@@ -275,7 +275,7 @@ class Chat extends EventTarget {
             if (!botPersona.online) {
         console.log("KEEP own online - updatin one..")
                 // Refresh instance (somehow stale otherwise).
-                let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
             }
             // TODO: unsubscribe too is necessary with rxdb
@@ -283,7 +283,7 @@ class Chat extends EventTarget {
                 if (!online) {
         console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
-                    let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                    let bot = await this.db.collections.persona..findOne(botPersona.id).exec();
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
@@ -299,7 +299,7 @@ class Chat extends EventTarget {
             return botPersonas;
         }
     
-        let allRooms = await this.db.collections["room"].find().exec();
+        let allRooms = await this.db.collections.room.find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
             botPersonas = await this.getProvidedBotsIn(extension, otherRoom);

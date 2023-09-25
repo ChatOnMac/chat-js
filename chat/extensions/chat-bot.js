@@ -113,6 +113,7 @@ class ChatParentBridge {
 
             window[`${collectionName}LastCheckpoint`] = checkpoint;
 
+            console.log("pull handler end")
             return {
                 documents,
                 checkpoint,

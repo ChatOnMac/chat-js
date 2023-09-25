@@ -211,7 +211,7 @@ class ChatParentBridge {
 class Chat extends EventTarget {
     db;
     parentBridge;
-    offerUnusedPersonas = async () => { };
+    offerUnusedPersonas;
 
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
@@ -224,11 +224,17 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
+        console.log("onFinishedSyncingDocsFromCanonical()")
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
-        this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
+        console.log("onFinishedSyncingDocsFromCanonical() -1")
+        // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
+        console.log("onFinishedSyncingDocsFromCanonical() -2")
+        console.log(this.offerUnusedPersonas);
         await this.offerUnusedPersonas();
+        console.log("onFinishedSyncingDocsFromCanonical() -3")
         await this.wireUnusedPersonas();
+        console.log("onFinishedSyncingDocsFromCanonical() - done")
     }
 
     static async init({ offerUnusedPersonas }) {

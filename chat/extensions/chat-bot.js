@@ -239,6 +239,7 @@ class Chat extends EventTarget {
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
         console.log("onFinishedSyncingDocsFromCanonical() -1")
+        console.log(offerUnusedPersonas)
         this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
         console.log("onFinishedSyncingDocsFromCanonical() -2")
         await this.offerUnusedPersonas();
@@ -371,7 +372,7 @@ window.chat = chat;
 
 console.log("well...")
 async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
-console.log("well2hehehe...")
+    console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
     // console.log("OFFER UNUSED? nah");

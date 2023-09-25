@@ -13,7 +13,7 @@
 
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
-import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+// import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
 import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";
@@ -25,16 +25,16 @@ import { Emitter } from "esm.run:strict-event-emitter";
 import { Logger } from "esm.run:@open-draft/logger";
 import { invariant } from "esm.run:outvariant";
 import { isNodeProcess } from "esm.run:is-node-process";
-import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
-import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+// import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
+// import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
-addRxPlugin(RxDBDevModePlugin);
+// addRxPlugin(RxDBDevModePlugin);
 function installNativeHostBehaviors() {
-    const interceptor = new BatchInterceptor({
-        name: 'my-interceptor',
-        interceptors: browserInterceptors,
-    })
-    interceptor.on('request', listener)
+    // const interceptor = new BatchInterceptor({
+    //     name: 'my-interceptor',
+    //     interceptors: browserInterceptors,
+    // })
+    // interceptor.on('request', listener)
 }
 
 /**

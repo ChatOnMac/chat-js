@@ -66,13 +66,11 @@ class ChatParentBridge {
     db;
     state;
     onFinishedSyncingDocsFromCanonical;
-    dispatchEvent;
 
-    constructor ({ db, state, onFinishedSyncingDocsFromCanonical, dispatchEvent }) {
+    constructor ({ db, state, onFinishedSyncingDocsFromCanonical }) {
         this.db = db;
         this.state = state;
         this.onFinishedSyncingDocsFromCanonical = onFinishedSyncingDocsFromCanonical;
-        this.dispatchEvent = dispatchEvent;
     }
 
     async createReplicationState(collection) {
@@ -204,7 +202,6 @@ class ChatParentBridge {
     
         console.log("gonna state..")
         console.log(this.state)
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
         console.log("eh")
         await this.onFinishedSyncingDocsFromCanonical();
         console.log("eh2")
@@ -227,6 +224,7 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
         await this.keepOwnPersonasOnline();
         chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
         await this.offerUnusedPersonas();

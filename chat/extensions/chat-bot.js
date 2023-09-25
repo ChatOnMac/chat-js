@@ -6,7 +6,6 @@
 // Copied from module for import map rigging... temporary hack.
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);
-
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
 import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
@@ -75,13 +74,11 @@ class ChatParentBridge {
     db;
     state;
     onFinishedSyncingDocsFromCanonical;
-    dispatchEvent;
 
-    constructor ({ db, state, onFinishedSyncingDocsFromCanonical, dispatchEvent }) {
+    constructor ({ db, state, onFinishedSyncingDocsFromCanonical }) {
         this.db = db;
         this.state = state;
         this.onFinishedSyncingDocsFromCanonical = onFinishedSyncingDocsFromCanonical;
-        this.dispatchEvent = dispatchEvent;
     }
 
     async createReplicationState(collection) {
@@ -213,7 +210,6 @@ class ChatParentBridge {
     
         console.log("gonna state..")
         console.log(this.state)
-        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
         console.log("eh")
         await this.onFinishedSyncingDocsFromCanonical();
         console.log("eh2")
@@ -236,6 +232,7 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
+        this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
         await this.keepOwnPersonasOnline();
         chat.offerUnusedPersonas = offerUnusedPersonas.bind(chat) || chat.offerUnusedPersonas;
         await this.offerUnusedPersonas();
@@ -341,7 +338,6 @@ class Chat extends EventTarget {
 }
 
 export { Chat, installNativeHostBehaviors };
-
 
 
 

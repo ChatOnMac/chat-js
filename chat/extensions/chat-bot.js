@@ -241,6 +241,7 @@ class Chat extends EventTarget {
         this.offerUnusedPersonas = offerUnusedPersonas.bind(this) || this.offerUnusedPersonas;
         await this.offerUnusedPersonas();
         await this.wireUnusedPersonas();
+        console.log("onFinishedSyncingDocsFromCanonical() - done")
     }
 
     static async init({ offerUnusedPersonas }) {

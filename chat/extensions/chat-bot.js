@@ -358,6 +358,7 @@ export { Chat, installNativeHostBehaviors };
 
 
 
+/*
 
 const offerUnusedPersonas = async ({ botsInRooms, unusedOnlineBots }) => {
     // console.log("OFFER UNUSED?");
@@ -377,6 +378,7 @@ const offerUnusedPersonas = async ({ botsInRooms, unusedOnlineBots }) => {
     // console.log("OFFER UNUSED? yah go")
     return [botPersona];
 };
+*/
 
 const chat = await Chat.init({ offerUnusedPersonas });
 window.chat = chat;

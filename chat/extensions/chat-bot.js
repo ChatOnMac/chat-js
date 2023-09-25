@@ -358,8 +358,12 @@ export { Chat, installNativeHostBehaviors };
 
 
 
+console.log("well2...")
+const chat = await Chat.init({ offerUnusedPersonas });
+window.chat = chat;
+
 console.log("well...")
-async function offerUnusedPersonas  ({ botsInRooms, unusedOnlineBots }) {
+async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
 console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
@@ -379,9 +383,6 @@ console.log("well2hehehe...")
     return [botPersona];
 }
 
-console.log("well2...")
-const chat = await Chat.init({ offerUnusedPersonas });
-window.chat = chat;
 
 console.log("well 4..")
 chat.addEventListener("finishedInitialSync", (event) => {

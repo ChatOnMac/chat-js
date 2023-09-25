@@ -76,6 +76,37 @@ class ChatParentBridge {
     async createReplicationState(collection) {
         const { name: collectionName } = collection;
     
+        const pullHandler = async (lastCheckpoint, batchSize) => {
+            //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
+
+            const canonicalDocumentChangesKey =
+                this.getCanonicalDocumentChangesKey(collectionName);
+            var documents = [];
+            for (let i = 0; i < batchSize; i++) {
+                const el = (this.state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
+                if (el) {
+                    documents.push(el);
+                } else {
+                    break;
+                }
+            }
+
+            const checkpoint =
+                documents.length === 0
+                    ? lastCheckpoint
+                    : {
+                        id: lastOfArray(documents).id,
+                        modifiedAt: lastOfArray(documents).modifiedAt,
+                    };
+
+            window[`${collectionName}LastCheckpoint`] = checkpoint;
+
+            return {
+                documents,
+                checkpoint,
+            };
+        }.bind(this);
+
         const replicationState = replicateRxCollection({
             collection,
             replicationIdentifier: `${collectionName}-replication`,
@@ -98,43 +129,14 @@ class ChatParentBridge {
     
                     return [];
                 },
-    
                 batchSize: 50,
                 modifier: (doc) => doc,
             },
     
             pull: {
                 async handler(lastCheckpoint, batchSize) {
-                    //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
-    
-                    const canonicalDocumentChangesKey =
-                        this.getCanonicalDocumentChangesKey(collectionName);
-                    var documents = [];
-                    for (let i = 0; i < batchSize; i++) {
-                        const el = (this.state.canonicalDocumentChanges[canonicalDocumentChangesKey] || []).shift();
-                        if (el) {
-                            documents.push(el);
-                        } else {
-                            break;
-                        }
-                    }
-    
-                    const checkpoint =
-                        documents.length === 0
-                        ? lastCheckpoint
-                        : {
-                            id: lastOfArray(documents).id,
-                            modifiedAt: lastOfArray(documents).modifiedAt,
-                        };
-    
-                    window[`${collectionName}LastCheckpoint`] = checkpoint;
-    
-                    return {
-                        documents,
-                        checkpoint,
-                    };
+                    await pullHandler(lastCheckpoint, batchSize);
                 },
-    
                 batchSize: 10,
                 modifier: (doc) => doc,
             },

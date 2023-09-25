@@ -387,6 +387,8 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
 }
 
 chat.addEventListener("finishedInitialSync", (event) => {
+    return;
+
     console.log("finishedInitialSync");
     const db = event.detail.db;
     const replications = event.detail.replications;

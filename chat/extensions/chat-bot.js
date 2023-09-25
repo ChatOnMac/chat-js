@@ -364,9 +364,12 @@ export { Chat, installNativeHostBehaviors };
 
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
+    console.log("OFFER UNUSED?")
     if (unusedOnlineBots.length > 0) {
+    console.log("OFFER UNUSED? nah")
         return []
     }
+    console.log("OFFER UNUSED? yah")
     const botPersona = await this.db.collections["persona"].insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",
@@ -375,6 +378,7 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],
         modifiedAt: new Date().getTime(),
     });
+    console.log("OFFER UNUSED? yah go")
     return [botPersona];
 }
 

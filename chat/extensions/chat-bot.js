@@ -202,8 +202,9 @@ class ChatParentBridge {
         console.log("gonna state..")
         console.log(this.state)
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { db: this.db, replications: this.state.replications }));
-
+        console.log("eh")
         await this.onFinishedSyncingDocsFromCanonical();
+        console.log("eh2")
     }
 }
 

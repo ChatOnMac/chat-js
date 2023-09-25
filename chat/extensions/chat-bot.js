@@ -303,17 +303,13 @@ class Chat extends EventTarget {
     }
 
     async getBotPersonas(room) {
-        console.log("get bot p")
         if (this.db.collections.length === 0) { return }
-        console.log("get bot p 1")
         let extension = await this.db.collections["code_extension"].findOne().exec();
         let botPersonas = await this.getProvidedBotsIn(extension, room);
-        console.log("get bot p 1.3")
         if (botPersonas.length > 0) {
             return botPersonas;
         }
     
-        console.log("get bot p 1.5")
         let allRooms = await this.db.collections["room"].find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
@@ -322,18 +318,21 @@ class Chat extends EventTarget {
                 bots.push(...botPersonas);
             }
         }
-        console.log("get bot p 2")
         if (bots.length > 0) {
             return bots;
         }
     
         console.log("get bot p 3")
+        console.log(this.db.collections["persona"])
+console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
         let botPersona = await this.db.collections["persona"]
             .findOne({ selector: { personaType: "bot" } })
             .exec();
         if (!botPersona) {
+        console.log("get bot p 3.0")
             return []
         }
+        console.log("get bot p 3.1")
         return [botPersona];
     }
 

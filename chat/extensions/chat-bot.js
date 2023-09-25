@@ -89,7 +89,7 @@ class ChatParentBridge {
         const { name: collectionName } = collection;
     
         const pullHandler = async (lastCheckpoint, batchSize) => {
-            console.log("Called pull handler with: ", lastCheckpoint, batchSize);
+            // console.log("Called pull handler with: ", lastCheckpoint, batchSize);
 
             const canonicalDocumentChangesKey =
                 this.getCanonicalDocumentChangesKey(collectionName);
@@ -113,7 +113,6 @@ class ChatParentBridge {
 
             window[`${collectionName}LastCheckpoint`] = checkpoint;
 
-            console.log("pull handler end")
             return {
                 documents,
                 checkpoint,
@@ -165,6 +164,7 @@ class ChatParentBridge {
     }
     
     async createCollectionsFromCanonical(collections) {
+        console.log("create CAn From Can")
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
@@ -182,6 +182,7 @@ class ChatParentBridge {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
+        console.log("create CAn From Can - ova")
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {

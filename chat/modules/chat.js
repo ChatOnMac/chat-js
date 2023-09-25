@@ -66,11 +66,13 @@ class ChatParentBridge {
     db;
     state;
     onFinishedSyncingDocsFromCanonical;
+    dispatchEvent;
 
-    constructor ({ db, state, onFinishedSyncingDocsFromCanonical }) {
+    constructor ({ db, state, onFinishedSyncingDocsFromCanonical, dispatchEvent }) {
         this.db = db;
         this.state = state;
         this.onFinishedSyncingDocsFromCanonical = onFinishedSyncingDocsFromCanonical;
+        this.dispatchEvent = dispatchEvent;
     }
 
     async createReplicationState(collection) {
@@ -221,7 +223,7 @@ class Chat extends EventTarget {
         super();
         this.db = db;
         const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical.bind(this);
-        this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical });
+        this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical, dispatchEvent: this.dispatchEvent });
     }
 
     async onFinishedSyncingDocsFromCanonical() {

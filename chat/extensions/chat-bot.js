@@ -21,6 +21,30 @@ import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);
 
+// This will be cleaned up for easier reuse soon. --ChatOnMac
+
+import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "esm.run:rxdb";
+import { RxDBDevModePlugin } from "esm.run:rxdb/plugins/dev-mode";
+import { replicateRxCollection } from "esm.run:rxdb/plugins/replication";
+import { getRxStorageMemory } from "esm.run:rxdb/plugins/storage-memory";
+import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
+import { until } from "esm.run:@open-draft/until";
+import { Emitter } from "esm.run:strict-event-emitter";
+import { Logger } from "esm.run:@open-draft/logger";
+import { invariant } from "esm.run:outvariant";
+import { isNodeProcess } from "esm.run:is-node-process";
+import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
+import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+
+function installNativeHostBehaviors() {
+    const interceptor = new BatchInterceptor({
+        name: 'my-interceptor',
+        interceptors: browserInterceptors,
+    })
+    interceptor.on('request', listener)
+}
 
 /**
  * The conflict handler gets 3 input properties:
@@ -65,11 +89,13 @@ class ChatParentBridge {
     db;
     state;
     onFinishedSyncingDocsFromCanonical;
+    dispatchEvent;
 
-    constructor ({ db, state, onFinishedSyncingDocsFromCanonical }) {
+    constructor ({ db, state, onFinishedSyncingDocsFromCanonical, dispatchEvent }) {
         this.db = db;
         this.state = state;
         this.onFinishedSyncingDocsFromCanonical = onFinishedSyncingDocsFromCanonical;
+        this.dispatchEvent = dispatchEvent;
     }
 
     async createReplicationState(collection) {
@@ -219,8 +245,8 @@ class Chat extends EventTarget {
     constructor ({ db }) {
         super();
         this.db = db;
-        const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical;
-        this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical });
+        const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical.bind(this);
+        this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical, dispatchEvent: this.dispatchEvent });
     }
 
     async onFinishedSyncingDocsFromCanonical() {
@@ -327,6 +353,9 @@ class Chat extends EventTarget {
         return bots;
     }
 }
+
+export { Chat, installNativeHostBehaviors };
+
 
 
 

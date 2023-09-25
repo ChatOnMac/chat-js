@@ -322,18 +322,14 @@ class Chat extends EventTarget {
             return bots;
         }
     
-        console.log("get bot p 3")
         //console.log(this.db.collections["persona"])
 //console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
         const botPersona = await this.db.collections["persona"]
             .findOne({ personaType: "bot" })
             .exec();
-        console.log("get bot p 3...")
         if (!botPersona) {
-        console.log("get bot p 3.0")
-            return []
+            return [];
         }
-        console.log("get bot p 3.1")
         return [botPersona];
     }
 
@@ -364,12 +360,12 @@ export { Chat, installNativeHostBehaviors };
 
 
 async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
-    console.log("OFFER UNUSED?");
+    // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
-    console.log("OFFER UNUSED? nah");
-        return []
+    // console.log("OFFER UNUSED? nah");
+        return [];
     }
-    console.log("OFFER UNUSED? yah")
+    // console.log("OFFER UNUSED? yah")
     const botPersona = await this.db.collections["persona"].insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",
@@ -378,7 +374,7 @@ async function offerUnusedPersonas({ botsInRooms, unusedOnlineBots }) {
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],
         modifiedAt: new Date().getTime(),
     });
-    console.log("OFFER UNUSED? yah go")
+    // console.log("OFFER UNUSED? yah go")
     return [botPersona];
 }
 

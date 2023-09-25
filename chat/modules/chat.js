@@ -312,7 +312,7 @@ class Chat extends EventTarget {
         }
     
         let botPersona = await this.db.collections["persona"]
-            .findOne({ selector: { personaType: "bot" } })
+            .findOne({ personaType: "bot" })
             .exec();
         if (!botPersona) {
             return []

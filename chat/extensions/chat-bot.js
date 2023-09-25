@@ -323,11 +323,12 @@ class Chat extends EventTarget {
         }
     
         console.log("get bot p 3")
-        console.log(this.db.collections["persona"])
-console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
-        let botPersona = await this.db.collections["persona"]
+        //console.log(this.db.collections["persona"])
+//console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
+        const botPersona = await this.db.collections["persona"]
             .findOne({ selector: { personaType: "bot" } })
             .exec();
+        console.log("get bot p 3...")
         if (!botPersona) {
         console.log("get bot p 3.0")
             return []

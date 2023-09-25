@@ -348,7 +348,8 @@ class Chat extends EventTarget {
     }
 }
 
-export { Chat, installNativeHostBehaviors };
+console.log("well1...")
+// export { Chat, installNativeHostBehaviors };
 
 
 

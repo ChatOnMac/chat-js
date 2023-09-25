@@ -6,6 +6,9 @@
 // Copied from module for import map rigging... temporary hack.
 // Dev Mode:
 //addRxPlugin(RxDBDevModePlugin);
+
+
+
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
 import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
@@ -274,10 +277,13 @@ class Chat extends EventTarget {
     }
     
     async keepOwnPersonasOnline() {
+        console.log("KEEP own online")
         if (this.db.collections.length === 0) { return }
         const botPersonas = await this.ownPersonas();
+        console.log("KEEP own online - 1")
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
+        console.log("KEEP own online - updatin one..")
                 // Refresh instance (somehow stale otherwise).
                 let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
@@ -285,12 +291,14 @@ class Chat extends EventTarget {
             // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
+        console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
                     let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
         }
+        console.log("KEEP own online - end")
     }
 
     async getBotPersonas(room) {

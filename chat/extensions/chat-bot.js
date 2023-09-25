@@ -279,6 +279,7 @@ class Chat extends EventTarget {
     async keepOwnPersonasOnline() {
         console.log("KEEP own online")
         if (this.db.collections.length === 0) { return }
+        console.log("KEEP own online - 0")
         const botPersonas = await this.ownPersonas();
         console.log("KEEP own online - 1")
         for (const botPersona of botPersonas) {

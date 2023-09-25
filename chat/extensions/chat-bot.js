@@ -222,7 +222,7 @@ class ChatParentBridge {
 class Chat extends EventTarget {
     db;
     parentBridge;
-    offerUnusedPersonas = () => { };
+    offerUnusedPersonas = async () => { };
 
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };

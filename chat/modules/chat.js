@@ -1,5 +1,20 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
+// import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@4f2b0a3/chat/modules/chat.js";
+// import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
+
+// Copied from module for import map rigging... temporary hack.
+// Dev Mode:
+//addRxPlugin(RxDBDevModePlugin);
+
+// From: https://github.com/kofrasa/mingo/tree/49f6f98e2432c9f389cd65e4a7e27f4e004c6a26#loading-operators
+// Note that doing this effectively imports the entire library into your bundle and unused operators cannot be tree shaked
+//import "esm.run:mingo/init/system";
+
+// This will be cleaned up for easier reuse soon. --ChatOnMac
+
+// import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
+
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb";
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
@@ -249,17 +264,18 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    async dispatchUnusedPersonasEvent() {
-        const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
-        const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
-        const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
+    async dispatchUnusedPersonasEvent(rooms) {
+        var rooms = rooms || await this.db.collections.room.find().exec();
+        const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants));
+        const botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
+        const unusedOnlineBots = await this.db.collections.persona.find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
         // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
 
     async wireUnusedPersonas() {
         if (this.db.collections.length === 0) { return }
-        await this.db.collections["room"].$.subscribe(async rooms => {
+        await this.db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
         this.dispatchUnusedPersonasEvent();

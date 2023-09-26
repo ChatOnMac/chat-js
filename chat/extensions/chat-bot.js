@@ -368,7 +368,8 @@ class Chat extends EventTarget {
 
 
 
-async function offerUnusedPersonas ({ db, botsInRooms, unusedOnlineBots }) {
+async function offerUnusedPersonas (event) {
+    const { db, botsInRooms, unusedOnlineBots } = event.detail;
     console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {

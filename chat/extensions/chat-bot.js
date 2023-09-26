@@ -19,22 +19,22 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-/*import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
+import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
 import { until } from "esm.run:@open-draft/until";
 import { Emitter } from "esm.run:strict-event-emitter";
 import { Logger } from "esm.run:@open-draft/logger";
 import { invariant } from "esm.run:outvariant";
-import { isNodeProcess } from "esm.run:is-node-process";*/
-// import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
-// import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+import { isNodeProcess } from "esm.run:is-node-process";
+import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
+import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
 // addRxPlugin(RxDBDevModePlugin);
 function installNativeHostBehaviors() {
-    // const interceptor = new BatchInterceptor({
-    //     name: 'my-interceptor',
-    //     interceptors: browserInterceptors,
-    // })
-    // interceptor.on('request', listener)
+    const interceptor = new BatchInterceptor({
+        name: 'my-interceptor',
+        interceptors: browserInterceptors,
+    })
+    interceptor.on('request', listener)
 }
 
 /**
@@ -230,11 +230,12 @@ class Chat extends EventTarget {
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
 
-    constructor ({ db }) {
+    constructor ({ db, offerUnusedPersonas }) {
         super();
         this.db = db;
         const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical.bind(this);
         this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical, dispatchEvent: this.dispatchEvent });
+        this.offerUnusedPersonas = offerUnusedPersonas
     }
 
     async onFinishedSyncingDocsFromCanonical() {
@@ -247,8 +248,6 @@ class Chat extends EventTarget {
     }
 
     static async init({ offerUnusedPersonas }) {
-        this.offerUnusedPersonas = offerUnusedPersonas;
-
         // proxyConsole();
 
         const db = await createRxDatabase({
@@ -259,8 +258,7 @@ class Chat extends EventTarget {
         });
 
         // Invoke the private constructor...
-        const chat = new Chat({ db });
-
+        const chat = new Chat({ db, offerUnusedPersonas });
         return chat;
     }
 

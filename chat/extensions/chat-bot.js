@@ -10,6 +10,18 @@
 // From: https://github.com/kofrasa/mingo/tree/49f6f98e2432c9f389cd65e4a7e27f4e004c6a26#loading-operators
 // Note that doing this effectively imports the entire library into your bundle and unused operators cannot be tree shaked
 //import "esm.run:mingo/init/system";
+// This will be cleaned up for easier reuse soon. --ChatOnMac
+
+// import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@4f2b0a3/chat/modules/chat.js";
+// import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
+
+// Copied from module for import map rigging... temporary hack.
+// Dev Mode:
+//addRxPlugin(RxDBDevModePlugin);
+
+// From: https://github.com/kofrasa/mingo/tree/49f6f98e2432c9f389cd65e4a7e27f4e004c6a26#loading-operators
+// Note that doing this effectively imports the entire library into your bundle and unused operators cannot be tree shaked
+//import "esm.run:mingo/init/system";
 
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
@@ -265,21 +277,11 @@ class Chat extends EventTarget {
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
-        console.log("1")
         var rooms = rooms || await this.db.collections.room.find().exec();
-        console.log("2")
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
-
-        console.log("3")
         const botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
-        console.log("4")
-        // const unusedOnlineBots2 = await this.db.collections.persona.find({ selector: { online: true } }).exec();
-        console.log("4.1")
         const unusedOnlineBots = await this.db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
-        console.log("5")
-        // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
-        console.log("6")
     }
 
     async wireUnusedPersonas() {
@@ -369,7 +371,6 @@ class Chat extends EventTarget {
 }
 
 // export { Chat, installNativeHostBehaviors };
-
 
 
 

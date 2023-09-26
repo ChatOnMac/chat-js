@@ -269,7 +269,6 @@ class Chat extends EventTarget {
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
         const botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
         const unusedOnlineBots = await this.db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
-        // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
 

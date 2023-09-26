@@ -265,7 +265,7 @@ class Chat extends EventTarget {
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
-        const rooms = rooms || this.db.collections.room.find().exec();
+        let rooms = rooms || this.db.collections.room.find().exec();
         const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
         const botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
         const unusedOnlineBots = await this.db.collections.persona.find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();

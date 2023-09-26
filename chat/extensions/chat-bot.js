@@ -15,10 +15,10 @@
 
 // import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "skypack:rxdb";
-import { RxDBDevModePlugin } from "skypack:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "skypack:rxdb/plugins/replication";
-import { getRxStorageMemory } from "skypack:rxdb/plugins/storage-memory";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb";
+import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
+import { replicateRxCollection } from "npm:rxdb/plugins/replication";
+import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
 /*import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
 import { until } from "esm.run:@open-draft/until";
 import { Emitter } from "esm.run:strict-event-emitter";

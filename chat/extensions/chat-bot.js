@@ -225,17 +225,15 @@ class ChatParentBridge {
 class Chat extends EventTarget {
     db;
     parentBridge;
-    offerUnusedPersonas;
 
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
 
-    constructor ({ db, offerUnusedPersonas }) {
+    constructor ({ db }) {
         super();
         this.db = db;
         const onFinishedSyncingDocsFromCanonical = this.onFinishedSyncingDocsFromCanonical.bind(this);
         this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical, dispatchEvent: this.dispatchEvent });
-        this.offerUnusedPersonas = offerUnusedPersonas
     }
 
     async onFinishedSyncingDocsFromCanonical() {
@@ -245,12 +243,13 @@ class Chat extends EventTarget {
         await this.keepOwnPersonasOnline();
         console.log("on finish 3")
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
-        await this.offerUnusedPersonas();
+        // await this.offerUnusedPersonas();
+        // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
         console.log("on finish 4")
         await this.wireUnusedPersonas();
     }
 
-    static async init({ offerUnusedPersonas }) {
+    static async init() {
         // proxyConsole();
 
         const db = await createRxDatabase({
@@ -261,19 +260,20 @@ class Chat extends EventTarget {
         });
 
         // Invoke the private constructor...
-        const chat = new Chat({ db, offerUnusedPersonas });
+        const chat = new Chat({ db });
         return chat;
     }
 
     async wireUnusedPersonas() {
         if (this.db.collections.length === 0) { return }
         const onlineBots = await this.ownPersonas();
-        const offerUnusedPersonas = this.offerUnusedPersonas;
+        // const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
             const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
             const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
             const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
-            await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
+            // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
+            this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
         });
     }
 
@@ -364,11 +364,7 @@ class Chat extends EventTarget {
 
 
 
-
-const chat = await Chat.init({ offerUnusedPersonas });
-window.chat = chat;
-
-async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
+async function offerUnusedPersonas ({ db, botsInRooms, unusedOnlineBots }) {
     console.log("well2hehehe...")
     // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
@@ -376,7 +372,7 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
         return [];
     }
     // console.log("OFFER UNUSED? yah")
-    const botPersona = await this.db.collections["persona"].insert({
+    const botPersona = await db.collections["persona"].insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",
         personaType: "bot",
@@ -387,6 +383,10 @@ async function offerUnusedPersonas ({ botsInRooms, unusedOnlineBots }) {
     // console.log("OFFER UNUSED? yah go")
     return [botPersona];
 }
+
+const chat = await Chat.init();
+window.chat = chat;
+window.chat.addEventListener("offerUnusedPersonas", offerUnusedPersonas);
 
 chat.addEventListener("finishedInitialSync", (event) => {
     console.log("finishedInitialSync");

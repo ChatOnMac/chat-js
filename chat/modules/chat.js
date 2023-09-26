@@ -1,7 +1,6 @@
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
-import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
-
+i
 import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb";
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
@@ -15,9 +14,7 @@ import { isNodeProcess } from "esm.run:is-node-process";
 import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
 
-// TODO: Remove !!
-addRxPlugin(RxDBDevModePlugin);
-
+// addRxPlugin(RxDBDevModePlugin);
 function installNativeHostBehaviors() {
     const interceptor = new BatchInterceptor({
         name: 'my-interceptor',
@@ -79,8 +76,8 @@ class ChatParentBridge {
     async createReplicationState(collection) {
         const { name: collectionName } = collection;
     
-        const pullHandler = (async (lastCheckpoint, batchSize) => {
-            //console.log("Called pull handler with: ", lastCheckpoint, batchSize);
+        const pullHandler = async (lastCheckpoint, batchSize) => {
+            // console.log("Called pull handler with: ", lastCheckpoint, batchSize);
 
             const canonicalDocumentChangesKey =
                 this.getCanonicalDocumentChangesKey(collectionName);
@@ -108,7 +105,7 @@ class ChatParentBridge {
                 documents,
                 checkpoint,
             };
-        }).bind(this);
+        };
 
         const replicationState = replicateRxCollection({
             collection,
@@ -137,9 +134,7 @@ class ChatParentBridge {
             },
     
             pull: {
-                async handler(lastCheckpoint, batchSize) {
-                    return await pullHandler(lastCheckpoint, batchSize);
-                },
+                handler: pullHandler.bind(this),
                 batchSize: 10,
                 modifier: (doc) => doc,
             },
@@ -157,10 +152,11 @@ class ChatParentBridge {
     }
     
     async createCollectionsFromCanonical(collections) {
+        console.log("create CAn From Can")
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
-
+        console.log(collections)
         await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(this.db.collections);
@@ -174,6 +170,7 @@ class ChatParentBridge {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
+        console.log("create CAn From Can - ova")
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
@@ -201,11 +198,11 @@ class ChatParentBridge {
 
     async finishedSyncingDocsFromCanonical() {
         console.log("finishedSyncingDocsFromCan()")
+        for (const replicationState of Object.values(this.state.replications)) {
+            replicationState.reSync();
+        }
         await this.replicationInSync()
     
-        console.log("gonna state..")
-        console.log(this.state)
-        console.log("eh")
         await this.onFinishedSyncingDocsFromCanonical();
         console.log("eh2")
     }
@@ -214,7 +211,6 @@ class ChatParentBridge {
 class Chat extends EventTarget {
     db;
     parentBridge;
-    offerUnusedPersonas;
 
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
@@ -227,22 +223,19 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
-        console.log("onFinishedSyncingDocsFromCanonical()")
+        console.log("on finish 1")
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
+        console.log("on finish 2")
         await this.keepOwnPersonasOnline();
-        console.log("onFinishedSyncingDocsFromCanonical() -1")
+        console.log("on finish 3")
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
-        console.log("onFinishedSyncingDocsFromCanonical() -2")
-        console.log(this.offerUnusedPersonas);
-        await this.offerUnusedPersonas();
-        console.log("onFinishedSyncingDocsFromCanonical() -3")
+        // await this.offerUnusedPersonas();
+        // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
+        console.log("on finish 4")
         await this.wireUnusedPersonas();
-        console.log("onFinishedSyncingDocsFromCanonical() - done")
     }
 
-    static async init({ offerUnusedPersonas }) {
-        this.offerUnusedPersonas = offerUnusedPersonas;
-
+    static async init() {
         // proxyConsole();
 
         const db = await createRxDatabase({
@@ -254,19 +247,19 @@ class Chat extends EventTarget {
 
         // Invoke the private constructor...
         const chat = new Chat({ db });
-
         return chat;
     }
 
     async wireUnusedPersonas() {
         if (this.db.collections.length === 0) { return }
         const onlineBots = await this.ownPersonas();
-        const offerUnusedPersonas = this.offerUnusedPersonas;
+        // const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
             const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
             const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
             const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
-            await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
+            // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
+            this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
         });
     }
 
@@ -286,7 +279,7 @@ class Chat extends EventTarget {
             if (!botPersona.online) {
         console.log("KEEP own online - updatin one..")
                 // Refresh instance (somehow stale otherwise).
-                let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
+                let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
             }
             // TODO: unsubscribe too is necessary with rxdb
@@ -294,7 +287,7 @@ class Chat extends EventTarget {
                 if (!online) {
         console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
-                    let bot = await this.db.collections.persona..findOne(botPersona.id).exec();
+                    let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
@@ -310,7 +303,7 @@ class Chat extends EventTarget {
             return botPersonas;
         }
     
-        let allRooms = await this.db.collections.room.find().exec();
+        let allRooms = await this.db.collections["room"].find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
             botPersonas = await this.getProvidedBotsIn(extension, otherRoom);
@@ -322,11 +315,13 @@ class Chat extends EventTarget {
             return bots;
         }
     
-        let botPersona = await this.db.collections["persona"]
+        //console.log(this.db.collections["persona"])
+//console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
+        const botPersona = await this.db.collections["persona"]
             .findOne({ selector: { personaType: "bot" } })
             .exec();
         if (!botPersona) {
-            return []
+            return [];
         }
         return [botPersona];
     }
@@ -347,4 +342,3 @@ class Chat extends EventTarget {
 }
 
 export { Chat, installNativeHostBehaviors };
-

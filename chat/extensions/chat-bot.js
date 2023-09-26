@@ -217,7 +217,7 @@ class ChatParentBridge {
         }
         await this.replicationInSync()
     
-        // await this.onFinishedSyncingDocsFromCanonical();
+        await this.onFinishedSyncingDocsFromCanonical();
         console.log("eh2")
     }
 }

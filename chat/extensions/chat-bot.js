@@ -245,6 +245,7 @@ class Chat extends EventTarget {
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
         // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
+        this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
         console.log("on finish 4")
         await this.wireUnusedPersonas();
     }
@@ -269,6 +270,7 @@ class Chat extends EventTarget {
         const onlineBots = await this.ownPersonas();
         // const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
+            console.log("SUBSCRIBE THING!+!!!!!!")
             const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
             const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
             const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();

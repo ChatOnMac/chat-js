@@ -264,17 +264,18 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    async dispatchUnusedPersonasEvent() {
+    async dispatchUnusedPersonasEvent(rooms) {
+        const rooms = rooms || this.db.collections.room.find().exec();
         const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
-        const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
-        const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
+        const botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
+        const unusedOnlineBots = await this.db.collections.persona.find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
         // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
 
     async wireUnusedPersonas() {
         if (this.db.collections.length === 0) { return }
-        await this.db.collections["room"].$.subscribe(async rooms => {
+        await this.db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
         this.dispatchUnusedPersonasEvent();

@@ -212,12 +212,12 @@ class ChatParentBridge {
 
     async finishedSyncingDocsFromCanonical() {
         console.log("finishedSyncingDocsFromCan()")
+        for (const replicationState of Object.values(this.state.replications)) {
+            replicationState.reSync();
+        }
         await this.replicationInSync()
     
-        console.log("gonna state..")
-        console.log(this.state)
-        console.log("eh")
-        await this.onFinishedSyncingDocsFromCanonical();
+        // await this.onFinishedSyncingDocsFromCanonical();
         console.log("eh2")
     }
 }
@@ -240,7 +240,6 @@ class Chat extends EventTarget {
     async onFinishedSyncingDocsFromCanonical() {
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
 
-        return;
         await this.keepOwnPersonasOnline();
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         await this.offerUnusedPersonas();

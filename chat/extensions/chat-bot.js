@@ -170,7 +170,7 @@ class ChatParentBridge {
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
-
+        console.log(collections)
         await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(this.db.collections);

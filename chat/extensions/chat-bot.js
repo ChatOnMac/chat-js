@@ -245,9 +245,8 @@ class Chat extends EventTarget {
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
         // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
-        this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
-        console.log("on finish 4")
         await this.wireUnusedPersonas();
+        console.log("on finish 4")
     }
 
     static async init() {
@@ -265,18 +264,20 @@ class Chat extends EventTarget {
         return chat;
     }
 
+    async dispatchUnusedPersonasEvent() {
+        const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
+        const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
+        const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
+        // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
+        this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
+    }
+
     async wireUnusedPersonas() {
         if (this.db.collections.length === 0) { return }
-        const onlineBots = await this.ownPersonas();
-        // const offerUnusedPersonas = this.offerUnusedPersonas;
         await this.db.collections["room"].$.subscribe(async rooms => {
-            console.log("SUBSCRIBE THING!+!!!!!!")
-            const botsInRoomsIDs = new Set(rooms.flatMap(room => room.participants)).map;
-            const botsInRooms = await this.db.collections["persona"].findByIds(botsInRoomsIDs).exec();
-            const unusedOnlineBots = await this.db.collections["persona"].find({ selector: { $not: { id: { $in: [...botsInRoomsIDs] } } } }).exec();
-            // await offerUnusedPersonas({ botsInRooms, unusedOnlineBots });
-            this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
+            this.dispatchUnusedPersonasEvent();
         });
+        this.dispatchUnusedPersonasEvent();
     }
 
     async ownPersonas() {

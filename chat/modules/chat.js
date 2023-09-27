@@ -265,6 +265,7 @@ class Chat extends EventTarget {
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
+console.log("dispatchUnusedPersonasEvent");
         var rooms = rooms || await this.db.collections.room.find().exec();
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
         var botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();

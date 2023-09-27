@@ -389,7 +389,10 @@ async function offerUnusedPersonas (event) {
         return [];
     }
         console.log("UNUSED not above 0")
-    const botPersona = await db.collections["persona"].insert({
+    const existingNames = await new Set([...db.collections.persona.find().exec().map(persona => { persona.name })])
+    console.log("existingNames:")
+    console.log(existingNames)
+    const botPersona = await db.collections.persona.insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",
         personaType: "bot",
@@ -397,7 +400,7 @@ async function offerUnusedPersonas (event) {
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],
         modifiedAt: new Date().getTime(),
     });
-    // console.log("OFFER UNUSED? yah go")
+    console.log("OFFER UNUSED: yah go")
     return [botPersona];
 }
 

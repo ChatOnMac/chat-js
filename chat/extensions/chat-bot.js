@@ -383,30 +383,21 @@ class Chat extends EventTarget {
 
 
 async function offerUnusedPersonas (event) {
-        console.log("OFFER????")
     const { db, botsInRooms, unusedOnlineBots } = event.detail;
     if (unusedOnlineBots.length > 0) {
-        console.log("UNUSED above ZERO SO UHHHHHHHHHHHHH..")
-        console.log(botsInRooms)
-        console.log(unusedOnlineBots)
         return [];
     }
-        console.log("UNUSED not above 0 - offer ...")
     const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
-    console.log(existingPersonas)
-console.log(existingPersonas.map(persona => { persona.name }))
     const existingNames = existingPersonas.map(persona => { return persona.name }).filter(name => { return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
-    console.log(existingNames);
-    // const lastName = existingNames.length === 0 ? "ChatBOT" : "ChatBOT " + existingNames[0];
     var nextName = "ChatBOT";
-    const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
-    const lastNumber = lastName.match(/(\d*)$/)[0];
-    console.log(lastNumber);
-    if (lastNumber) {
-        nextName = nextName + " " + lastNumber.toString();
-        console.log(nextName);
-    } else if (lastName) {
-        nextName = nextName + " 2"
+    if (existingNames.includes(nextName)) {
+        const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
+        const lastNumber = lastName.match(/(\d*)$/)[0];
+        if (lastNumber) {
+            nextName += " " + (lastNumber + 1).toString();
+        } else if (lastName) {
+            nextName += " 2";
+        }
     }
 
     const botPersona = await db.collections.persona.insert({
@@ -417,7 +408,6 @@ console.log(existingPersonas.map(persona => { persona.name }))
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],
         modifiedAt: new Date().getTime(),
     });
-    console.log("OFFER UNUSED: yah go")
     return [botPersona];
 }
 

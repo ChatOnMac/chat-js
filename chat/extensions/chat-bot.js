@@ -384,6 +384,8 @@ async function offerUnusedPersonas (event) {
     const { db, botsInRooms, unusedOnlineBots } = event.detail;
     if (unusedOnlineBots.length > 0) {
         console.log("UNUSED above ZERO SO UHHHHHHHHHHHHH")
+        console.log(botsInRooms)
+        console.log(unusedOnlineBots)
         return [];
     }
         console.log("UNUSED not above 0")

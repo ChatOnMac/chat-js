@@ -289,6 +289,9 @@ class Chat extends EventTarget {
         await this.db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
+        await this.db.collections.persona.$.subscribe(async personas => {
+            this.dispatchUnusedPersonasEvent();
+        });
         this.dispatchUnusedPersonasEvent();
     }
 
@@ -388,13 +391,24 @@ async function offerUnusedPersonas (event) {
         console.log(unusedOnlineBots)
         return [];
     }
-        console.log("UNUSED not above 0")
-    const existingNames = await new Set([...db.collections.persona.find().exec().map(persona => { persona.name })])
-    console.log("existingNames:")
-    console.log(existingNames)
+        console.log("UNUSED not above 0 - offer ...")
+    const existingNames = await db.collections.persona.find({ selector: { online: true } }).exec().map(persona => { persona.name }).filter(name => { name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
+    console.log(existingNames);
+    // const lastName = existingNames.length === 0 ? "ChatBOT" : "ChatBOT " + existingNames[0];
+    var nextName = "ChatBOT";
+    const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
+    const lastNumber = lastName.match(/(\d*)$/)[0];
+    console.log(lastNumber);
+    if (lastNumber) {
+        nextName = nextName + " " + lastNumber.toString();
+        console.log(nextName);
+    } else if (lastName) {
+        nextName = nextName + " 2"
+    }
+
     const botPersona = await db.collections.persona.insert({
         id: crypto.randomUUID(),
-        name: "ChatBOT",
+        name: nextName,
         personaType: "bot",
         online: true,
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],

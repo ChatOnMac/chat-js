@@ -277,6 +277,9 @@ class Chat extends EventTarget {
         await this.db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
+        await this.db.collections.persona.$.subscribe(async personas => {
+            this.dispatchUnusedPersonasEvent();
+        });
         this.dispatchUnusedPersonasEvent();
     }
 

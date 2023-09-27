@@ -414,7 +414,7 @@ async function offerUnusedPersonas (event) {
         modelOptions: ["gpt-3.5-turbo", "gpt-4"],
         modifiedAt: new Date().getTime(),
     });
-    return [botPersona];
+    return botsInRooms + [botPersona];
 }
 
 const chat = await Chat.init();

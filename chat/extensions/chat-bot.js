@@ -387,9 +387,12 @@ async function offerUnusedPersonas (event) {
     if (unusedOnlineBots.length > 0) {
         return [];
     }
-    const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
-    const existingNames = existingPersonas.map(persona => { return persona.name }).filter(name => { return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
+
+    // const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
+    const existingNames = botsInRooms.map(persona => { return persona.name }).filter(name => { return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
     var nextName = "ChatBOT";
+    console.log("existing:")
+    console.log(existingNames)
     if (existingNames.includes(nextName)) {
         const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
         const lastNumber = lastName.match(/(\d*)$/)[0];
@@ -398,6 +401,7 @@ async function offerUnusedPersonas (event) {
         } else if (lastName) {
             nextName += " 2";
         }
+        console.log(nextName)
     }
 
     const botPersona = await db.collections.persona.insert({

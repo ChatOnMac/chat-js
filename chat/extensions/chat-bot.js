@@ -395,6 +395,7 @@ async function offerUnusedPersonas (event) {
     var nextName = "ChatBOT";
     console.log("existing:")
     console.log(existingNames)
+console.log(existingNames.includes(nextName))
     if (existingNames.includes(nextName)) {
         console.log('well..')
         const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];

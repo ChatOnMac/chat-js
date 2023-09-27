@@ -393,7 +393,6 @@ async function offerUnusedPersonas (event) {
     }
         console.log("UNUSED not above 0 - offer ...")
     const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
-    debugger;
     const existingNames = existingPersonas.map(persona => { persona.name }).filter(name => { console.log(name); return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
     console.log(existingNames);
     // const lastName = existingNames.length === 0 ? "ChatBOT" : "ChatBOT " + existingNames[0];
@@ -429,7 +428,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
     const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
-        if (documentData.createdAt < EPOCH.getTime()) {
+        if (documentData.createdAt < this.onlineAt.getTime()) {
             return;
         }
         const personaCollection = db.collections["persona"];

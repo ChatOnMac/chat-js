@@ -426,7 +426,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
     const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
-        if (documentData.createdAt < this.onlineAt.getTime()) {
+        if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }
         const personaCollection = db.collections["persona"];

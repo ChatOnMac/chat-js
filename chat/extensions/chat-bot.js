@@ -317,6 +317,7 @@ class Chat extends EventTarget {
         console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
                     let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                    console.log("got bot...")
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
@@ -379,14 +380,13 @@ class Chat extends EventTarget {
 
 
 async function offerUnusedPersonas (event) {
+        console.log("OFFER????")
     const { db, botsInRooms, unusedOnlineBots } = event.detail;
-    console.log("well2hehehe...")
-    // console.log("OFFER UNUSED?");
     if (unusedOnlineBots.length > 0) {
-    // console.log("OFFER UNUSED? nah");
+        console.log("UNUSED above ZERO SO UHHHHHHHHHHHHH")
         return [];
     }
-    // console.log("OFFER UNUSED? yah")
+        console.log("UNUSED not above 0")
     const botPersona = await db.collections["persona"].insert({
         id: crypto.randomUUID(),
         name: "ChatBOT",

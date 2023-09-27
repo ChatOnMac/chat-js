@@ -395,7 +395,7 @@ async function offerUnusedPersonas (event) {
     const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
     console.log(existingPersonas)
 console.log(existingPersonas.map(persona => { persona.name }))
-    const existingNames = existingPersonas.map(persona => { persona.name }).filter(name => { console.log(name); return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
+    const existingNames = existingPersonas.map(persona => { return persona.name }).filter(name => { return name.startsWith("ChatBOT") }).sort((a, b) => a.localeCompare(b));
     console.log(existingNames);
     // const lastName = existingNames.length === 0 ? "ChatBOT" : "ChatBOT " + existingNames[0];
     var nextName = "ChatBOT";

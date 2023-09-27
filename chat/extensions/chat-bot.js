@@ -398,6 +398,8 @@ async function offerUnusedPersonas (event) {
     if (existingNames.includes(nextName)) {
         const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
         const lastNumber = lastName.match(/(\d*)$/)[0];
+        console.log(lastName)
+        console.log(lastNumber)
         if (lastNumber) {
             nextName += " " + (lastNumber + 1).toString();
         } else if (lastName) {
@@ -407,7 +409,7 @@ async function offerUnusedPersonas (event) {
     }
 
     const botPersona = await db.collections.persona.insert({
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID().toUpperCase(),
         name: nextName,
         personaType: "bot",
         online: true,
@@ -527,7 +529,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
             const createdAt = new Date().getTime();
 
             collection.insert({
-                id: crypto.randomUUID(),
+                id: crypto.randomUUID().toUpperCase(),
                 content,
                 type: "message",
                 room: documentData.room,

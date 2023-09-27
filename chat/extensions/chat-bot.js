@@ -391,13 +391,9 @@ async function offerUnusedPersonas (event) {
 
     console.log(botsInRooms)
     // const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
-    const existingNames = botsInRooms.map(persona => persona.name).filter(name => name.startsWith("ChatBOT")).sort((a, b) => a.localeCompare(b));
+    const existingNames = botsInRooms.map(persona => persona.name).filter(name => name.startsWith("ChatBOT")).sort((a, b) => b.localeCompare(a));
     var nextName = "ChatBOT";
     console.log("existing...:")
-    console.log(existingNames)
-    console.log(nextName)
-    console.log(existingNames.includes)
-console.log(existingNames.includes(nextName))
     if (existingNames.includes(nextName)) {
         console.log('well..')
         const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];

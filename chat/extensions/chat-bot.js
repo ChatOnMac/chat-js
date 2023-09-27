@@ -393,8 +393,10 @@ async function offerUnusedPersonas (event) {
     // const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
     const existingNames = botsInRooms.map(persona => persona.name).filter(name => name.startsWith("ChatBOT")).sort((a, b) => a.localeCompare(b));
     var nextName = "ChatBOT";
-    console.log("existing:")
+    console.log("existing...:")
     console.log(existingNames)
+    console.log(nextName)
+    console.log(existingNames.includes)
 console.log(existingNames.includes(nextName))
     if (existingNames.includes(nextName)) {
         console.log('well..')

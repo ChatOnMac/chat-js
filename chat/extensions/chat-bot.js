@@ -401,7 +401,7 @@ async function offerUnusedPersonas (event) {
         console.log(lastName)
         console.log(lastNumber)
         if (lastNumber) {
-            nextName += " " + (lastNumber + 1).toString();
+            nextName += " " + (parseInt(lastNumber, 10) + 1).toString();
         } else if (lastName) {
             nextName += " 2";
         }

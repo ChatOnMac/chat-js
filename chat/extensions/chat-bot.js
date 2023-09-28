@@ -303,14 +303,10 @@ class Chat extends EventTarget {
     }
     
     async keepOwnPersonasOnline() {
-        console.log("KEEP own online")
         if (this.db.collections.length === 0) { return }
-        console.log("KEEP own online - 0")
         const botPersonas = await this.ownPersonas();
-        console.log("KEEP own online - 1")
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
-        console.log("KEEP own online - updatin one..")
                 // Refresh instance (somehow stale otherwise).
                 let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
@@ -318,15 +314,12 @@ class Chat extends EventTarget {
             // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
-        console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
                     let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
-                    console.log("got bot...")
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
         }
-        console.log("KEEP own online - end")
     }
 
     async getBotPersonas(room) {
@@ -351,7 +344,7 @@ class Chat extends EventTarget {
     
         //console.log(this.db.collections["persona"])
 //console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
-        const botPersona = await this.db.collections["persona"]
+        const botPersona = await this.db.collections.persona
             .findOne({ selector: { personaType: "bot" } })
             .exec();
         if (!botPersona) {
@@ -364,7 +357,7 @@ class Chat extends EventTarget {
         if (this.db.collections.length === 0) { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
-            let allInRoomMap = await this.db.collections["persona"].findByIds(room.participants).exec();
+            let allInRoomMap = await this.db.collections.persona.findByIds(room.participants).exec();
             for (const participant of allInRoomMap.values()) {
                 if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
                     bots.push(participant);
@@ -418,7 +411,6 @@ window.chat = chat;
 window.chat.addEventListener("offerUnusedPersonas", offerUnusedPersonas);
 
 chat.addEventListener("finishedInitialSync", (event) => {
-    console.log("finishedInitialSync");
     const db = event.detail.db;
     const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {

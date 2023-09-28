@@ -265,7 +265,6 @@ class Chat extends EventTarget {
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
-console.log("dispatchUnusedPersonasEvent");
         var rooms = rooms || await this.db.collections.room.find().exec();
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
         var botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
@@ -292,24 +291,19 @@ console.log("dispatchUnusedPersonasEvent");
     }
     
     async keepOwnPersonasOnline() {
-        console.log("KEEP own online")
         if (this.db.collections.length === 0) { return }
-        console.log("KEEP own online - 0")
         const botPersonas = await this.ownPersonas();
-        console.log("KEEP own online - 1")
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
-        console.log("KEEP own online - updatin one..")
                 // Refresh instance (somehow stale otherwise).
-                let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
             }
             // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
-        console.log("KEEP own online - sub resp..")
                     // Refresh instance (somehow stale otherwise).
-                    let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                    let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
@@ -325,7 +319,7 @@ console.log("dispatchUnusedPersonasEvent");
             return botPersonas;
         }
     
-        let allRooms = await this.db.collections["room"].find().exec();
+        let allRooms = await this.db.collections.room.find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
             botPersonas = await this.getProvidedBotsIn(extension, otherRoom);
@@ -337,8 +331,6 @@ console.log("dispatchUnusedPersonasEvent");
             return bots;
         }
     
-        //console.log(this.db.collections["persona"])
-//console.log(this.db.collections["persona"].findOne({ selector: { personaType: "bot" } }))
         const botPersona = await this.db.collections["persona"]
             .findOne({ selector: { personaType: "bot" } })
             .exec();

@@ -389,23 +389,17 @@ async function offerUnusedPersonas (event) {
         return [];
     }
 
-    console.log(botsInRooms)
     // const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
     const existingNames = botsInRooms.map(persona => persona.name).filter(name => name.startsWith("ChatBOT")).sort((a, b) => b.localeCompare(a));
     var nextName = "ChatBOT";
-    console.log("existing...:")
     if (existingNames.includes(nextName)) {
-        console.log('well..')
         const lastName = existingNames.length === 0 ? "ChatBOT" : existingNames[0];
         const lastNumber = lastName.match(/(\d*)$/)[0];
-        console.log(lastName)
-        console.log(lastNumber)
         if (lastNumber) {
             nextName += " " + (parseInt(lastNumber, 10) + 1).toString();
         } else if (lastName) {
             nextName += " 2";
         }
-        console.log(nextName)
     }
 
     const botPersona = await db.collections.persona.insert({

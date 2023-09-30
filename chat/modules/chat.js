@@ -167,11 +167,9 @@ class ChatParentBridge {
     }
     
     async createCollectionsFromCanonical(collections) {
-        console.log("create CAn From Can")
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
-        console.log(collections)
         await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(this.db.collections);
@@ -185,7 +183,6 @@ class ChatParentBridge {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
-        console.log("create CAn From Can - ova")
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
@@ -212,14 +209,12 @@ class ChatParentBridge {
     }
 
     async finishedSyncingDocsFromCanonical() {
-        console.log("finishedSyncingDocsFromCan()")
         for (const replicationState of Object.values(this.state.replications)) {
             replicationState.reSync();
         }
         await this.replicationInSync()
     
         await this.onFinishedSyncingDocsFromCanonical();
-        console.log("eh2")
     }
 }
 
@@ -253,16 +248,12 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
-        console.log("on finish 1")
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
-        console.log("on finish 2")
         await this.keepOwnPersonasOnline();
-        console.log("on finish 3")
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
         // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
         await this.wireUnusedPersonas();
-        console.log("on finish 4")
     }
 
     static async init() {
@@ -324,7 +315,6 @@ class Chat extends EventTarget {
                 }
             });
         }
-        console.log("KEEP own online - end")
     }
 
     async getBotPersonas(room) {

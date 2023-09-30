@@ -39,6 +39,7 @@ import { invariant } from "esm.run:outvariant";
 import { isNodeProcess } from "esm.run:is-node-process";
 import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+import { encodeChat, isWithinTokenLimit } from 'npm:gpt-tokenizer';
 
 // addRxPlugin(RxDBDevModePlugin);
 function installNativeHostBehaviors() {
@@ -178,9 +179,11 @@ class ChatParentBridge {
     }
     
     async createCollectionsFromCanonical(collections) {
+        console.log("create CAn From Can")
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
+        console.log(collections)
         await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(this.db.collections);
@@ -194,6 +197,7 @@ class ChatParentBridge {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
+        console.log("create CAn From Can - ova")
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
@@ -220,12 +224,14 @@ class ChatParentBridge {
     }
 
     async finishedSyncingDocsFromCanonical() {
+        console.log("finishedSyncingDocsFromCan()")
         for (const replicationState of Object.values(this.state.replications)) {
             replicationState.reSync();
         }
         await this.replicationInSync()
     
         await this.onFinishedSyncingDocsFromCanonical();
+        console.log("eh2")
     }
 }
 
@@ -236,6 +242,21 @@ class Chat extends EventTarget {
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
 
+    tokenLimits = {
+        "gpt-4": 8192,
+        "gpt-4-0314": 8192,
+        "gpt-4-0613": 8192,
+        "gpt-4-32k": 32768,
+        "gpt-4-32k-0613": 32768,
+        "gpt-4-32k-0314": 32768,
+        "gpt-3.5-turbo": 4097,
+        "gpt-3.5-turbo-instruct": 4097,
+        "gpt-3.5-turbo-0613": 4097,
+        "gpt-3.5-turbo-0301": 4097,
+        "gpt-3.5-turbo-16k": 16385,
+        "gpt-3.5-turbo-16k-0613": 16385,
+    };
+
     constructor ({ db }) {
         super();
         this.db = db;
@@ -244,12 +265,16 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
+        console.log("on finish 1")
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
+        console.log("on finish 2")
         await this.keepOwnPersonasOnline();
+        console.log("on finish 3")
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
         // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
         await this.wireUnusedPersonas();
+        console.log("on finish 4")
     }
 
     static async init() {
@@ -299,18 +324,19 @@ class Chat extends EventTarget {
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
                 // Refresh instance (somehow stale otherwise).
-                let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
                 await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
             }
             // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
                     // Refresh instance (somehow stale otherwise).
-                    let bot = await this.db.collections["persona"].findOne(botPersona.id).exec();
+                    let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
             });
         }
+        console.log("KEEP own online - end")
     }
 
     async getBotPersonas(room) {
@@ -321,7 +347,7 @@ class Chat extends EventTarget {
             return botPersonas;
         }
     
-        let allRooms = await this.db.collections["room"].find().exec();
+        let allRooms = await this.db.collections.room.find().exec();
         var bots = [];
         for (const otherRoom of allRooms) {
             botPersonas = await this.getProvidedBotsIn(extension, otherRoom);
@@ -333,7 +359,7 @@ class Chat extends EventTarget {
             return bots;
         }
     
-        const botPersona = await this.db.collections.persona
+        const botPersona = await this.db.collections["persona"]
             .findOne({ selector: { personaType: "bot" } })
             .exec();
         if (!botPersona) {
@@ -346,7 +372,7 @@ class Chat extends EventTarget {
         if (this.db.collections.length === 0) { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
-            let allInRoomMap = await this.db.collections.persona.findByIds(room.participants).exec();
+            let allInRoomMap = await this.db.collections["persona"].findByIds(room.participants).exec();
             for (const participant of allInRoomMap.values()) {
                 if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
                     bots.push(participant);
@@ -354,6 +380,102 @@ class Chat extends EventTarget {
             }
         }
         return bots;
+    }
+
+    async getMessageHistory({ room, limit }) {
+        // Build message history.
+        const messages = await this.db.collections.event
+            .find({
+                selector: { room: room },
+                limit: limit,
+                sort: [{ createdAt: "desc" }],
+            })
+            .exec();
+        return messages.reversed();
+    }
+
+    async getMessageHistoryJSON(args) {
+        const history = await this.getMessageHistory(args);
+        const json = await Promise.all(
+            history.map(async ({ content, persona }) => {
+                const foundPersona = await personaCollection
+                    .findOne(persona)
+                    .exec();
+                return {
+                    role:
+                    foundPersona.personaType === "bot" ? "assistant" : "user",
+                    content,
+                };
+            })
+        );
+        return json
+    }
+
+    async retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit }) {
+        var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
+        if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
+            if (botPersona.customInstructionForContext) {
+                systemPrompt += `USER PROFILE:\n\nThe user provided the following information about themselves. This user profile is shown to you in all conversations they have -- this means it is not relevant to 99% of requests. Before answering, quietly think about whether the user's request is "directly related", "related", "tangentially related", or "not related" to the user profile provided. Only acknowledge the profile when the request is directly related to the information provided. Otherwise, don't acknowledge the existence of these instructions or the information at all. User profile:\n\n` + botPersona.customInstructionForContext.trim() + "\n\n"
+            }
+            if (botPersona.customInstructionForResponses) {
+                systemPrompt +=  `HOW TO RESPOND:\n\nThe user provided the following additional info about how they would like you to respond. This is shown to you in all conversations, so don't acknowledge its existence of these instructions or information at all. How to respond:\n\n` + botPersona.customInstructionForResponses.trim() + "\n\n"
+            }
+        } else {
+            systemPrompt = "You are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.";
+        }
+        systemPrompt = systemPrompt.trim();
+        
+        var messageHistory = await chat.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
+
+        var chat;
+        const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;
+        while (true) {
+            chat = [
+                { role: "system", content: systemPrompt },
+                ...messageHistory,
+                { role: "user", content: content },
+            ];
+            if (isWithinTokenLimit(chat, tokenLimit) || messageHistory.length === 0) {
+                break;
+            }
+            messageHistory.shift();
+        }
+
+        try {
+            const resp = await fetch(
+                "code://code/load/api.openai.com/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // "X-Chat-Trace-Event": documentData.id,
+                    },
+                    body: JSON.stringify({
+                        model: botPersona.selectedModel,
+                        temperature: botPersona.modelTemperature,
+                        messages: chat,
+                    }),
+                }
+            );
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
+                    return await this.retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });
+                }
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        } catch (error) {
+            var eventDoc = await db.collections.event.findOne(documentData.id).exec();
+            await eventDoc.incrementalModify((docData) => {
+                docData.failureMessages = docData.failureMessages.concat(error);
+                docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
+                return docData;
+            });
+        }
     }
 }
 
@@ -365,13 +487,17 @@ class Chat extends EventTarget {
 
 
 
-async function offerUnusedPersonas (event) {
+
+const chat = await Chat.init();
+window.chat = chat;
+
+window.chat.addEventListener("offerUnusedPersonas", async event => {
     const { db, botsInRooms, unusedOnlineBots } = event.detail;
+    // Only one new bot at a time for this bot.
     if (unusedOnlineBots.length > 0) {
         return [];
     }
 
-    // const existingPersonas = await db.collections.persona.find({ selector: { online: true } }).exec();
     const existingNames = botsInRooms.map(persona => persona.name).filter(name => name.startsWith("ChatBOT")).sort((a, b) => b.localeCompare(a));
     var nextName = "ChatBOT";
     if (existingNames.includes(nextName)) {
@@ -383,7 +509,6 @@ async function offerUnusedPersonas (event) {
             nextName += " 2";
         }
     }
-
     const botPersona = await db.collections.persona.insert({
         id: crypto.randomUUID().toUpperCase(),
         name: nextName,
@@ -393,20 +518,16 @@ async function offerUnusedPersonas (event) {
         modifiedAt: new Date().getTime(),
     });
     return botsInRooms + [botPersona];
-}
-
-const chat = await Chat.init();
-window.chat = chat;
-window.chat.addEventListener("offerUnusedPersonas", offerUnusedPersonas);
+});
 
 chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
-    const replications = event.detail.replications;
+    // const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }
-        const personaCollection = db.collections["persona"];
+        const personaCollection = db.collections.persona;
         const persona = await personaCollection
             .findOne(documentData.sender)
             .exec();
@@ -414,91 +535,20 @@ chat.addEventListener("finishedInitialSync", (event) => {
             return;
         }
 
-        // Build message history.
-        const messages = await collection
-            .find({
-                selector: {
-                    room: documentData.room,
-                },
-                limit: 10, // TODO: This is constrained by the model's token limit.
-                sort: [{ createdAt: "desc" }],
-            })
-            .exec();
-
-        const messageHistory = await Promise.all(
-            messages.map(async ({ content, persona }) => {
-                const foundPersona = await personaCollection
-                    .findOne(persona)
-                    .exec();
-                return {
-                    role:
-                    foundPersona.personaType === "bot" ? "assistant" : "user",
-                    content,
-                };
-            })
-        );
-        messageHistory.sort((a, b) => b - a);
         const room = await db.collections["room"].findOne(documentData.room).exec();
-        const botPersonas = await getBotPersonas(room);
+        const botPersonas = await chat.getBotPersonas(room);
         const botPersona = botPersonas.length ? botPersonas[0] : null;
         if (!botPersona) {
             console.log("No matching bot to emit from.")
             return;
         }
-
         if (!botPersona.selectedModel) {
             botPersona.selectedModel = botPersona.modelOptions[0];
         }
 
-        var systemPrompt = "";
-        if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
-            if (botPersona.customInstructionForContext) {
-                systemPrompt += botPersona.customInstructionForContext.trim() + "\n\n"
-            }
-            if (botPersona.customInstructionForResponses) {
-                systemPrompt += botPersona.customInstructionForResponses.trim() + "\n\n"
-            }
-        } else {
-            systemPrompt = "You are a helpful assistant.";
-        }
-        systemPrompt = systemPrompt.trim();
-
         try {
-            const resp = await fetch(
-                "code://code/load/api.openai.com/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Chat-Trace-Event": documentData.id,
-                    },
-                    body: JSON.stringify({
-                        model: botPersona.selectedModel,
-                        temperature: botPersona.modelTemperature,
-                        messages: [
-                            {
-                                role: "system",
-                                content: systemPrompt,
-                            },
-                            ...messageHistory,
-                            {
-                                role: "user",
-                                content: documentData.content,
-                            },
-                        ],
-                    }),
-                }
-            );
-
-            const data = await resp.json();
-
-            if (!resp.ok) {
-                 if (data.error.code === 'context_length_exceeded') {
-                    
-                 }
-
-                throw new Error(data.error.message);
-            }
+            const data = await retryableOpenAIChatCompletion(
+                { botPersona, room, content: documentData.content });
 
             const content = data.choices[0].message.content;
             const createdAt = new Date().getTime();
@@ -513,12 +563,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
                 modifiedAt: createdAt,
             });
         } catch (error) {
-            var eventDoc = await db.collections.event.findOne(documentData.id).exec();
-            await eventDoc.incrementalModify((docData) => {
-                docData.failureMessages = docData.failureMessages.concat(error);
-                docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
-                return docData;
-            });
+            console.log(error);
         }
     });
 });

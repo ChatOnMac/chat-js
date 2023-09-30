@@ -27,6 +27,7 @@ import { invariant } from "esm.run:outvariant";
 import { isNodeProcess } from "esm.run:is-node-process";
 import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
 import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
+import { encodeChat, isWithinTokenLimit } from 'npm:gpt-tokenizer';
 
 // addRxPlugin(RxDBDevModePlugin);
 function installNativeHostBehaviors() {
@@ -229,6 +230,21 @@ class Chat extends EventTarget {
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
 
+    tokenLimits = {
+        "gpt-4": 8192,
+        "gpt-4-0314": 8192,
+        "gpt-4-0613": 8192,
+        "gpt-4-32k": 32768,
+        "gpt-4-32k-0613": 32768,
+        "gpt-4-32k-0314": 32768,
+        "gpt-3.5-turbo": 4097,
+        "gpt-3.5-turbo-instruct": 4097,
+        "gpt-3.5-turbo-0613": 4097,
+        "gpt-3.5-turbo-0301": 4097,
+        "gpt-3.5-turbo-16k": 16385,
+        "gpt-3.5-turbo-16k-0613": 16385,
+    };
+
     constructor ({ db }) {
         super();
         this.db = db;
@@ -352,6 +368,102 @@ class Chat extends EventTarget {
             }
         }
         return bots;
+    }
+
+    async getMessageHistory({ room, limit }) {
+        // Build message history.
+        const messages = await this.db.collections.event
+            .find({
+                selector: { room: room },
+                limit: limit,
+                sort: [{ createdAt: "desc" }],
+            })
+            .exec();
+        return messages.reversed();
+    }
+
+    async getMessageHistoryJSON(args) {
+        const history = await this.getMessageHistory(args);
+        const json = await Promise.all(
+            history.map(async ({ content, persona }) => {
+                const foundPersona = await personaCollection
+                    .findOne(persona)
+                    .exec();
+                return {
+                    role:
+                    foundPersona.personaType === "bot" ? "assistant" : "user",
+                    content,
+                };
+            })
+        );
+        return json
+    }
+
+    async retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit }) {
+        var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
+        if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
+            if (botPersona.customInstructionForContext) {
+                systemPrompt += `USER PROFILE:\n\nThe user provided the following information about themselves. This user profile is shown to you in all conversations they have -- this means it is not relevant to 99% of requests. Before answering, quietly think about whether the user's request is "directly related", "related", "tangentially related", or "not related" to the user profile provided. Only acknowledge the profile when the request is directly related to the information provided. Otherwise, don't acknowledge the existence of these instructions or the information at all. User profile:\n\n` + botPersona.customInstructionForContext.trim() + "\n\n"
+            }
+            if (botPersona.customInstructionForResponses) {
+                systemPrompt +=  `HOW TO RESPOND:\n\nThe user provided the following additional info about how they would like you to respond. This is shown to you in all conversations, so don't acknowledge its existence of these instructions or information at all. How to respond:\n\n` + botPersona.customInstructionForResponses.trim() + "\n\n"
+            }
+        } else {
+            systemPrompt = "You are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.";
+        }
+        systemPrompt = systemPrompt.trim();
+        
+        var messageHistory = await chat.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
+
+        var chat;
+        const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;
+        while (true) {
+            chat = [
+                { role: "system", content: systemPrompt },
+                ...messageHistory,
+                { role: "user", content: content },
+            ];
+            if (isWithinTokenLimit(chat, tokenLimit) || messageHistory.length === 0) {
+                break;
+            }
+            messageHistory.shift();
+        }
+
+        try {
+            const resp = await fetch(
+                "code://code/load/api.openai.com/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // "X-Chat-Trace-Event": documentData.id,
+                    },
+                    body: JSON.stringify({
+                        model: botPersona.selectedModel,
+                        temperature: botPersona.modelTemperature,
+                        messages: chat,
+                    }),
+                }
+            );
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
+                    return await this.retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });
+                }
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        } catch (error) {
+            var eventDoc = await db.collections.event.findOne(documentData.id).exec();
+            await eventDoc.incrementalModify((docData) => {
+                docData.failureMessages = docData.failureMessages.concat(error);
+                docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
+                return docData;
+            });
+        }
     }
 }
 

@@ -544,17 +544,17 @@ chat.addEventListener("finishedInitialSync", (event) => {
         }
 
         try {
-            const data = await retryableOpenAIChatCompletion(
+            const data = await window.chat.retryableOpenAIChatCompletion(
                 { botPersona, room, content: documentData.content });
 
             const content = data.choices[0].message.content;
             const createdAt = new Date().getTime();
 
-            collection.insert({
+            db.collections.event.insert({
                 id: crypto.randomUUID().toUpperCase(),
                 content,
                 type: "message",
-                room: documentData.room,
+                room: room,
                 sender: botPersona.id,
                 createdAt,
                 modifiedAt: createdAt,

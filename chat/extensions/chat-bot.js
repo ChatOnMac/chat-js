@@ -195,7 +195,6 @@ class ChatParentBridge {
             replicationState.reSync();
             await replicationState.awaitInSync();
         }
-        console.log("create CAn From Can - ova")
     }
 
     async syncDocsFromCanonical(collectionName, changedDocs) {
@@ -518,7 +517,10 @@ chat.addEventListener("finishedInitialSync", (event) => {
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }
+
+        console.log("Hmm")
         debugger;
+
         const personaCollection = db.collections.persona;
         const persona = await personaCollection
             .findOne(documentData.sender)

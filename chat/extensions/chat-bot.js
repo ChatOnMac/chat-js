@@ -289,6 +289,7 @@ class Chat extends EventTarget {
         var botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
         botsInRooms = [...botsInRooms.values()];
         const unusedOnlineBots = await this.db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
+        const offlineBots = await this.db.collections.persona.find({ selector: { online: false, providedByExtension:  } }).exec();
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
 
@@ -303,15 +304,15 @@ class Chat extends EventTarget {
         this.dispatchUnusedPersonasEvent();
     }
 
-    async ownPersonas() {
+    async ownPersonas(insideRoomsOnly) {
         // TODO: Multiple bots in same room.
-        const botPersonas = await this.getBotPersonas(null);
+        const botPersonas = await this.getBotPersonas(null, insideRoomsOnly);
         return botPersonas
     }
     
     async keepOwnPersonasOnline() {
         if (this.db.collections.length === 0) { return }
-        const botPersonas = await this.ownPersonas();
+        const botPersonas = await this.ownPersonas(true);
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
                 // Refresh instance (somehow stale otherwise).
@@ -329,45 +330,34 @@ class Chat extends EventTarget {
         }
     }
 
-    async getBotPersonas(room) {
+    async getBotPersonas(room, insideRoomsOnly) {
         if (this.db.collections.length === 0) { return }
         let extension = await this.db.collections["code_extension"].findOne().exec();
-        let botPersonas = await this.getProvidedBotsIn(extension, room);
-        if (botPersonas.length > 0) {
-            return botPersonas;
-        }
-    
-        let allRooms = await this.db.collections.room.find().exec();
-        var bots = [];
-        for (const otherRoom of allRooms) {
-            botPersonas = await this.getProvidedBotsIn(extension, otherRoom);
-            if (botPersonas.length > 0) {
-                bots.push(...botPersonas);
-            }
-        }
-        if (bots.length > 0) {
-            return bots;
-        }
-    
-        const botPersona = await this.db.collections["persona"]
-            .findOne({ selector: { personaType: "bot" } })
-            .exec();
-        if (!botPersona) {
-            return [];
-        }
-        return [botPersona];
+        let botPersonas = await this.getProvidedBotsIn(extension, room, insideRoomsOnly);
+        return botPersonas;
     }
 
-    async getProvidedBotsIn(extension, room) {
+    async getProvidedBotsIn(extension, room, insideRoomsOnly) {
         if (this.db.collections.length === 0) { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
-            let allInRoomMap = await this.db.collections["persona"].findByIds(room.participants).exec();
+            let allInRoomMap = await this.db.collections.persona.findByIds(room.participants).exec();
             for (const participant of allInRoomMap.values()) {
                 if (participant.providedByExtension === extension.id && participant.personaType === "bot") {
                     bots.push(participant);
                 }
             }
+        } else if (insideRoomsOnly) {
+            let allRooms = await this.db.collections.room.find().exec();
+            for (const otherRoom of allRooms) {
+                botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
+                if (botPersonas.length > 0) {
+                    bots.push(...botPersonas);
+                }
+            }
+        } else if (!insideRoomsOnly) {
+            const extensionBots = await this.db.collections.persona.find({ selector: { providedByExtension: extension.id, personaType: "bot" } });
+            return [...extensionBots];
         }
         return bots;
     }
@@ -499,23 +489,33 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
             nextName += " 2";
         }
     }
+
+    const modelOptions = ["gpt-3.5-turbo", "gpt-4"];
+
+    const existingBots = window.chat.ownPersonas(false).filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
+    if (existingBots.length > 0) {
+        const existingBot = existingBots[0];
+        existingBot.online = true
+        existingBot.modelOptions = modelOptions;
+        existingBot.modifiedAt = new Date().getTime();
+        return existingBot;
+    }
+
     const botPersona = await db.collections.persona.insert({
         id: crypto.randomUUID().toUpperCase(),
         name: nextName,
         personaType: "bot",
         online: true,
-        modelOptions: ["gpt-3.5-turbo", "gpt-4"],
+        modelOptions: modelOptions,
         modifiedAt: new Date().getTime(),
     });
     return botsInRooms + [botPersona];
 });
 
 chat.addEventListener("finishedInitialSync", (event) => {
-    console.log("FIN SYNC")
     const db = event.detail.db;
     // const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
-        console.log("new event...");
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }
@@ -528,7 +528,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
             return;
         }
 
-        const room = await db.collections["room"].findOne(documentData.room).exec();
+        const room = await db.collections.room.findOne(documentData.room).exec();
         const botPersonas = await chat.getBotPersonas(room);
         const botPersona = botPersonas.length ? botPersonas[0] : null;
         if (!botPersona) {

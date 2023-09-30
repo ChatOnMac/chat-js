@@ -358,7 +358,7 @@ class Chat extends EventTarget {
                 sort: [{ createdAt: "desc" }],
             })
             .exec();
-        return messages.reversed();
+        return messages.reverse();
     }
 
     async getMessageHistoryJSON(args) {

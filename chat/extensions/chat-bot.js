@@ -491,7 +491,7 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 
     const modelOptions = ["gpt-3.5-turbo", "gpt-4"];
 
-    const existingBots = window.chat.ownPersonas(false).filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
+    const existingBots = await window.chat.ownPersonas(false).filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
     if (existingBots.length > 0) {
         const existingBot = existingBots[0];
         existingBot.online = true

@@ -392,7 +392,7 @@ class Chat extends EventTarget {
         }
         systemPrompt = systemPrompt.trim();
         
-        var messageHistory = await chat.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
+        var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
 
         var chat;
         const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;

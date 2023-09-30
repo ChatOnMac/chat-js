@@ -179,11 +179,9 @@ class ChatParentBridge {
     }
     
     async createCollectionsFromCanonical(collections) {
-        console.log("create CAn From Can")
         for (const [collectionName, collection] of Object.entries(collections)) {
             collections[collectionName]["conflictHandler"] = conflictHandler;
         }
-        console.log(collections)
         await this.db.addCollections(collections);
 
         const collectionEntries = Object.entries(this.db.collections);
@@ -405,6 +403,7 @@ class Chat extends EventTarget {
     }
 
     async retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit }) {
+        debugger;
         var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {

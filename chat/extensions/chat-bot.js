@@ -10,6 +10,7 @@
 // From: https://github.com/kofrasa/mingo/tree/49f6f98e2432c9f389cd65e4a7e27f4e004c6a26#loading-operators
 // Note that doing this effectively imports the entire library into your bundle and unused operators cannot be tree shaked
 //import "esm.run:mingo/init/system";
+
 // This will be cleaned up for easier reuse soon. --ChatOnMac
 
 // import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@4f2b0a3/chat/modules/chat.js";
@@ -331,7 +332,11 @@ class Chat extends EventTarget {
 
     async getBotPersonas(room, insideRoomsOnly) {
         if (this.db.collections.length === 0) { return }
-        let extension = await this.db.collections["code_extension"].findOne().exec();
+        let extension = await this.db.collections.code_extension.findOne().exec();
+        if (!extension) {
+            console.log("No extension found!");
+            return [];
+        }
         let botPersonas = await this.getProvidedBotsIn(extension, room, insideRoomsOnly);
         return botPersonas;
     }

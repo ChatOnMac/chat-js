@@ -511,10 +511,11 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 });
 
 chat.addEventListener("finishedInitialSync", (event) => {
+    console.log("FIN SYNC")
     const db = event.detail.db;
     // const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
-        console.log("new event...")
+        console.log("new event...");
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }

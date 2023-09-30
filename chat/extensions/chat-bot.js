@@ -403,7 +403,6 @@ class Chat extends EventTarget {
     }
 
     async retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit }) {
-        debugger;
         var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {
@@ -516,6 +515,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
     // const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
+        debugger;
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;
         }

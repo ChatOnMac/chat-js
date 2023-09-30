@@ -514,14 +514,11 @@ chat.addEventListener("finishedInitialSync", (event) => {
     const db = event.detail.db;
     // const replications = event.detail.replications;
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
+        console.log("new event...")
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
-            console.log(documentData)
-            console.log(window.chat.onlineAt.getTime())
-            console.log(new Date().getTime())
             return;
         }
 
-        console.log("Hmm")
         debugger;
 
         const personaCollection = db.collections.persona;

@@ -285,12 +285,9 @@ class Chat extends EventTarget {
 
     async dispatchUnusedPersonasEvent(rooms) {
         var rooms = rooms || await this.db.collections.room.find().exec();
-        console.log("1")
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
-        console.log("2")
         var botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
         botsInRooms = [...botsInRooms.values()];
-        console.log("3")
         const unusedOnlineBots = await this.db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
@@ -354,17 +351,12 @@ class Chat extends EventTarget {
             for (const otherRoom of allRooms) {
                 const botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
                 if (botPersonas.length > 0) {
-        console.log("4")
                     bots.push(...botPersonas);
-        console.log("5")
                 }
             }
         } else if (!insideRoomsOnly) {
-            const extensionBots = await this.db.collections.persona.find({ selector: { providedByExtension: extension.id, personaType: "bot" } });
-        console.log("6")
-            let r = [...extensionBots];
-        console.log("7")
-            return r
+            const extensionBots = await this.db.collections.persona.find({ selector: { providedByExtension: extension.id, personaType: "bot" } }).exec();
+            return [...extensionBots];
         }
         return bots;
     }

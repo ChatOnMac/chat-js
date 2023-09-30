@@ -337,13 +337,13 @@ class Chat extends EventTarget {
         } else if (insideRoomsOnly) {
             let allRooms = await this.db.collections.room.find().exec();
             for (const otherRoom of allRooms) {
-                botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
+                const botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
                 if (botPersonas.length > 0) {
                     bots.push(...botPersonas);
                 }
             }
         } else if (!insideRoomsOnly) {
-            const extensionBots = await this.db.collections.persona.find({ selector: { providedByExtension: extension.id, personaType: "bot" } });
+            const extensionBots = await this.db.collections.persona.find({ selector: { providedByExtension: extension.id, personaType: "bot" } }).exec();
             return [...extensionBots];
         }
         return bots;

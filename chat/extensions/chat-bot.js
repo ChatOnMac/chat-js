@@ -495,9 +495,11 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
     existingBots = [...existingBots].filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
     if (existingBots.length > 0) {
         const existingBot = existingBots[0];
-        existingBot.online = true
-        existingBot.modelOptions = modelOptions;
-        existingBot.modifiedAt = new Date().getTime();
+        existingBot.incrementalPatch({
+            online: true,
+            modelOptions:  modelOptions,
+            modifiedAt: new Date().getTime(),
+        });
         return existingBot;
     }
 
@@ -536,7 +538,9 @@ chat.addEventListener("finishedInitialSync", (event) => {
             return;
         }
         if (!botPersona.selectedModel) {
-            botPersona.selectedModel = botPersona.modelOptions[0];
+            botPersona.incrementalPatch({
+                selectedModel: botPersona.modelOptions[0],
+            });
         }
 
         try {

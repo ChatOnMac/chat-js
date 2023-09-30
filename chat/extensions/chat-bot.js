@@ -519,8 +519,6 @@ chat.addEventListener("finishedInitialSync", (event) => {
             return;
         }
 
-        debugger;
-
         const personaCollection = db.collections.persona;
         const persona = await personaCollection
             .findOne(documentData.sender)

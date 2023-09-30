@@ -352,7 +352,7 @@ class Chat extends EventTarget {
         } else if (insideRoomsOnly) {
             let allRooms = await this.db.collections.room.find().exec();
             for (const otherRoom of allRooms) {
-                botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
+                const botPersonas = await this.getProvidedBotsIn(extension, otherRoom, insideRoomsOnly);
                 if (botPersonas.length > 0) {
         console.log("4")
                     bots.push(...botPersonas);

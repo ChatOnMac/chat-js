@@ -259,7 +259,7 @@ class Chat extends EventTarget {
     }
 
     async onFinishedSyncingDocsFromCanonical() {
-        await installNativeHostBehaviors()
+        await this.installNativeHostBehaviors()
 
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
@@ -463,4 +463,4 @@ class Chat extends EventTarget {
     }
 }
 
-export { Chat, installNativeHostBehaviors };
+export { Chat };

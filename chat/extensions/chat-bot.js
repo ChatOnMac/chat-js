@@ -485,7 +485,6 @@ class Chat extends EventTarget {
 
 
 
-installNativeHostBehaviors();
 const chat = await Chat.init();
 window.chat = chat;
 

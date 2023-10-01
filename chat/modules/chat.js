@@ -19,24 +19,9 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-import { createDeferredExecutor } from "esm.run:@open-draft/deferred-promise";
-import { until } from "esm.run:@open-draft/until";
-import { Emitter } from "esm.run:strict-event-emitter";
-import { Logger } from "esm.run:@open-draft/logger";
-import { invariant } from "esm.run:outvariant";
-import { isNodeProcess } from "esm.run:is-node-process";
-import { BatchInterceptor } from 'esm.run:@mswjs/interceptors@0.25.4';
-import browserInterceptors from 'esm.run:@mswjs/interceptors@0.25.4/lib/browser/presets/browser.mjs';
-import { encodeChat, isWithinTokenLimit } from 'npm:gpt-tokenizer';
+import { isWithinTokenLimit } from 'npm:gpt-tokenizer';
 
 // addRxPlugin(RxDBDevModePlugin);
-function installNativeHostBehaviors() {
-    const interceptor = new BatchInterceptor({
-        name: 'my-interceptor',
-        interceptors: browserInterceptors,
-    })
-    interceptor.on('request', listener)
-}
 
 /**
  * The conflict handler gets 3 input properties:
@@ -247,7 +232,35 @@ class Chat extends EventTarget {
         this.parentBridge = new ChatParentBridge({ db, state: this.state, onFinishedSyncingDocsFromCanonical, dispatchEvent: this.dispatchEvent });
     }
 
+    async allowHosts() {
+        const codePackage = await this.db.collections.code_package.findOne().exec;
+        return codePackage.allowHosts.split(",");
+    }
+
+    async installNativeHostBehaviors() {
+        const originalFetch = window.fetch;
+        const apply = async (target, thisArg, args) => {
+            const [input, init] = args;
+            const urlObj = new URL(input);
+            const allowHosts = this.allowHosts();
+            for (const host of allowHosts) {
+                if (urlObj.hostname.toLowerCase() === host.toLowerCase() && urlObj.protocol === "https") {
+                    urlObj.protocol = "code";
+                    urlObj.hostname = "code";
+                    urlObj.pathname = "/load/" + host + urlObj.pathname
+                    break;
+                }
+            }
+            return await target(urlObj.toString(), init);
+        };
+        window.fetch = new Proxy(originalFetch, {
+            apply: apply.bind(this),
+        });
+    }
+
     async onFinishedSyncingDocsFromCanonical() {
+        await installNativeHostBehaviors()
+
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.keepOwnPersonasOnline();
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);

@@ -409,7 +409,7 @@ class Chat extends EventTarget {
         return json
     }
 
-    async retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit }) {
+    async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {
@@ -470,14 +470,14 @@ class Chat extends EventTarget {
 
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
-                    return await this.retryableOpenAIChatCompletion({ botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });
+                    return await this.retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });
                 }
                 throw new Error(data.error.message);
             }
 
             return data;
         } catch (error) {
-            var eventDoc = await this.db.collections.event.findOne(documentData.id).exec();
+            var eventDoc = await this.db.collections.event.findOne(eventTriggerID).exec();
             await eventDoc.incrementalModify((docData) => {
                 docData.failureMessages = docData.failureMessages.concat(error);
                 docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
@@ -574,7 +574,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
 
         try {
             const data = await window.chat.retryableOpenAIChatCompletion(
-                { botPersona, room, content: documentData.content });
+                { eventTriggerID: documentData.id, botPersona, room, content: documentData.content });
 
             const content = data.choices[0].message.content;
             const createdAt = new Date().getTime();

@@ -32,7 +32,7 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-import { gptTokenizer } from 'npm:gpt-tokenizer';
+import { api } from "npm:gpt-tokenizer/esm/main";
 
 // addRxPlugin(RxDBDevModePlugin);
 
@@ -426,7 +426,7 @@ class Chat extends EventTarget {
 
         const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;
         if (botPersona.selectedModel.startsWith("gpt-")) {
-            gptTokenizer.default.modelName = "cl100k_base";
+            api.default.modelName = "cl100k_base";
         } else {
             console.log("Unexpected model for token estimation (must be added)");
         }
@@ -438,7 +438,7 @@ class Chat extends EventTarget {
                 ...messageHistory,
                 { role: "user", content: content },
             ];
-            if (gptTokenizer.isWithinTokenLimit(chat, tokenLimit) || messageHistory.length === 0) {
+            if (api.isWithinTokenLimit(chat, tokenLimit) || messageHistory.length === 0) {
                 break;
             }
             messageHistory.shift();

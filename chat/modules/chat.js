@@ -1,4 +1,4 @@
-// This will be cleaned up for easier reuse soon. --ChatOnMac
+/// This will be cleaned up for easier reuse soon. --ChatOnMac
 
 // import { Chat } from "jsdelivr.gh:ChatOnMac/chat-js@4f2b0a3/chat/modules/chat.js";
 // import { Chat } from "https://github.com/ChatOnMac/chat-js/blob/main/chat/modules/chat.js";
@@ -19,7 +19,9 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-import { gptTokenizer } from 'npm:gpt-tokenizer';
+import { isWithinTokenLimit } from 'npm:gpt-tokenizer/dist/cl100k_base';
+import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
+import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
 
 // addRxPlugin(RxDBDevModePlugin);
 
@@ -412,10 +414,14 @@ class Chat extends EventTarget {
         var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
 
         const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;
-        if (botPersona.selectedModel.startsWith("gpt-")) {
-            gptTokenizer.default.modelName = "cl100k_base";
-        } else {
-            console.log("Unexpected model for token estimation (must be added)");
+        let gptTokenizer;
+        switch (botPersona.selectedModel) {
+            case "gpt-3.5-turbo":
+                gptTokenizer = gpt35TurboTokenizer;
+            case "gpt-4":
+                gptTokenizer = gpt4Tokenizer;
+            default:
+                gptTokenizer = null;
         }
 
         var chat;
@@ -425,7 +431,7 @@ class Chat extends EventTarget {
                 ...messageHistory,
                 { role: "user", content: content },
             ];
-            if (gptTokenizer.isWithinTokenLimit(chat, tokenLimit) || messageHistory.length === 0) {
+            if ((gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit)) || messageHistory.length === 0) {
                 break;
             }
             messageHistory.shift();

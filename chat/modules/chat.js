@@ -19,7 +19,6 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-import { isWithinTokenLimit } from 'npm:gpt-tokenizer/dist/cl100k_base';
 import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
 import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
 

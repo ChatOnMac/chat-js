@@ -32,7 +32,7 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb"
 import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
-import { GPTTokenizer_cl100k_base } from 'npm:gpt-tokenizer';
+import { isWithinTokenLimit } from 'unpkg:gpt-tokenizer/dist/cl100k_base';
 
 // addRxPlugin(RxDBDevModePlugin);
 

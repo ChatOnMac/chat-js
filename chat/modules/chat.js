@@ -465,7 +465,7 @@ class Chat extends EventTarget {
         } catch (error) {
             var eventDoc = await this.db.collections.event.findOne(eventTriggerID).exec();
             await eventDoc.incrementalModify((docData) => {
-                docData.failureMessages = docData.failureMessages.concat(error);
+                docData.failureMessages = docData.failureMessages.concat(error.message);
                 docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
                 return docData;
             });

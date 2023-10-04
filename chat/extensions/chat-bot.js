@@ -247,7 +247,7 @@ class Chat extends EventTarget {
     }
 
     async allowHosts() {
-        const codePackage = await this.db.collections.code_package.findOne().exec;
+        const codePackage = await this.db.collections.code_package.findOne().exec();
         return codePackage.allowHosts.split(",");
     }
 
@@ -406,7 +406,7 @@ class Chat extends EventTarget {
                 };
             })
         );
-        return json
+        return json;
     }
 
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
@@ -451,7 +451,7 @@ class Chat extends EventTarget {
 
         try {
             const resp = await fetch(
-                "code://code/load/api.openai.com/v1/chat/completions",
+                "https:///api.openai.com/v1/chat/completions",
                 {
                     method: "POST",
                     headers: {

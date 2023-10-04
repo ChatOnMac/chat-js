@@ -256,7 +256,7 @@ class Chat extends EventTarget {
         const apply = async (target, thisArg, args) => {
             const [input, init] = args;
             const urlObj = new URL(input);
-            const allowHosts = this.allowHosts();
+            const allowHosts = await this.allowHosts();
             for (const host of allowHosts) {
                 if (urlObj.hostname.toLowerCase() === host.toLowerCase() && urlObj.protocol === "https") {
                     urlObj.protocol = "code";

@@ -483,7 +483,7 @@ class Chat extends EventTarget {
                 docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
                 return docData;
             });
-            console.log(error);
+            throw error;
         }
     }
 }

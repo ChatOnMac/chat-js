@@ -552,6 +552,7 @@ chat.addEventListener("finishedInitialSync", (event) => {
             return;
         }
 
+        debugger;
         const personaCollection = db.collections.persona;
         let foo = await db.collections.persona.findOne("A3FBDDCE-A2FD-4F54-9876-FFC0D96B3D31").exec();
         console.log(foo);

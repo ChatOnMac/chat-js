@@ -383,7 +383,7 @@ class Chat extends EventTarget {
         const history = await this.getMessageHistory(args);
         const json = await Promise.all(
             history.map(async ({ content, persona }) => {
-                const foundPersona = await personaCollection
+                const foundPersona = await this.db.collections.persona
                     .findOne(persona)
                     .exec();
                 return {

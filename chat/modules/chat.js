@@ -15,10 +15,10 @@
 
 // import { proxyConsole } from "jsdelivr.gh:ChatOnMac/chat-js@main/chat/modules/console-proxy.js";
 
-import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb";
-import { RxDBDevModePlugin } from "npm:rxdb/plugins/dev-mode";
-import { replicateRxCollection } from "npm:rxdb/plugins/replication";
-import { getRxStorageMemory } from "npm:rxdb/plugins/storage-memory";
+import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb@15.0.0-beta.13";
+import { RxDBDevModePlugin } from "npm:rxdb@15.0.0-beta.13/plugins/dev-mode";
+import { replicateRxCollection } from "npm:rxdb@15.0.0-beta.13/plugins/replication";
+import { getRxStorageMemory } from "npm:rxdb@15.0.0-beta.13/plugins/storage-memory";
 import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
 import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
 

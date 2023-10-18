@@ -384,7 +384,7 @@ class Chat extends EventTarget {
         // Build message history.
         const messages = await this.db.collections.event
             .find({
-                selector: { room: room },
+                selector: { room: room.id },
                 limit: limit,
                 sort: [{ createdAt: "desc" }],
             })

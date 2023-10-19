@@ -258,7 +258,7 @@ class Chat extends EventTarget {
             const urlObj = new URL(input);
             const allowHosts = await this.allowHosts();
             for (const host of allowHosts) {
-                if (urlObj.hostname.toLowerCase() === host.toLowerCase() && urlObj.protocol === "https") {
+                if (urlObj.hostname.toLowerCase() === host.toLowerCase() && urlObj.protocol === "https:") {
                     urlObj.protocol = "code";
                     urlObj.hostname = "code";
                     urlObj.pathname = "/load/" + host + urlObj.pathname

@@ -108,6 +108,18 @@ class ChatParentBridge {
             };
         };
 
+        const replicationPushHandler = async (docs) => {
+            //console.log("Called push handler with: ", docs);
+            window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
+                collectionName: collection.name,
+                changedDocs: docs.map((row) => {
+                    return replaceObjectsWithId(row.newDocumentState);
+                }),
+            });
+    
+            return [];
+        };
+
         const replicationState = replicateRxCollection({
             collection,
             replicationIdentifier: `${collectionName}-replication`,
@@ -119,7 +131,7 @@ class ChatParentBridge {
             deletedField: "isDeleted",
     
             push: {
-                handler: this.replicationPushHandler,
+                handler: replicationPushHandler.bind(this),
                 batchSize: 50,
                 modifier: (doc) => doc,
             },
@@ -132,18 +144,6 @@ class ChatParentBridge {
         });
     
         return replicationState;
-    }
-
-    async replicationPushHandler(docs) {
-        //console.log("Called push handler with: ", docs);
-        window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
-            collectionName: collection.name,
-            changedDocs: docs.map((row) => {
-                return replaceObjectsWithId(row.newDocumentState);
-            }),
-        });
-
-        return [];
     }
 
     replaceObjectsWithId(obj) {

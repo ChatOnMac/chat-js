@@ -119,17 +119,7 @@ class ChatParentBridge {
             deletedField: "isDeleted",
     
             push: {
-                async handler(docs) {
-                    //console.log("Called push handler with: ", docs);
-                    window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
-                        collectionName: collection.name,
-                        changedDocs: docs.map((row) => {
-                            return replaceObjectsWithId(row.newDocumentState);
-                        }),
-                    });
-    
-                    return [];
-                }.bind(this),
+                handler: this.replicationPushHandler,
                 batchSize: 50,
                 modifier: (doc) => doc,
             },
@@ -142,6 +132,18 @@ class ChatParentBridge {
         });
     
         return replicationState;
+    }
+
+    async replicationPushHandler(docs) {
+        //console.log("Called push handler with: ", docs);
+        window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
+            collectionName: collection.name,
+            changedDocs: docs.map((row) => {
+                return replaceObjectsWithId(row.newDocumentState);
+            }),
+        });
+
+        return [];
     }
 
     replaceObjectsWithId(obj) {

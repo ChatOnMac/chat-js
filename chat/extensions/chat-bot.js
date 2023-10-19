@@ -142,7 +142,7 @@ class ChatParentBridge {
                     });
     
                     return [];
-                },
+                }.bind(this),
                 batchSize: 50,
                 modifier: (doc) => doc,
             },

@@ -137,7 +137,7 @@ class ChatParentBridge {
                     window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
                         collectionName: collection.name,
                         changedDocs: docs.map((row) => {
-                            return this.replaceObjectsWithId(row.newDocumentState);
+                            return replaceObjectsWithId(row.newDocumentState);
                         }),
                     });
     

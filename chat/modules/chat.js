@@ -124,7 +124,7 @@ class ChatParentBridge {
                     window.webkit.messageHandlers.surrogateDocumentChanges.postMessage({
                         collectionName: collection.name,
                         changedDocs: docs.map((row) => {
-                            return replaceObjectsWithId(row.newDocumentState);
+                            return this.replaceObjectsWithId(row.newDocumentState);
                         }),
                     });
     
@@ -150,7 +150,7 @@ class ChatParentBridge {
             if (typeof obj[key] === 'object' && obj[key] !== null && 'id' in obj[key]) {
                 updatedObj[key] = obj[key].id;
             } else if (typeof obj[key] === 'object') {
-                updatedObj[key] = replaceObjectsWithId(obj[key]);
+                updatedObj[key] = this.replaceObjectsWithId(obj[key]);
             } else {
                 updatedObj[key] = obj[key];
             }

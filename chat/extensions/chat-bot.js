@@ -602,27 +602,6 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
 
-        /*
-            case id
-        case name
-        case markdownDescription
-        case providedByExtension
-        case modelDownloadURL
-        case apiURL
-        case createdAt
-        case modifiedAt
-        case isDeleted
-        case modelInference
-        case context
-        case nBatch
-        case topK
-        case reversePrompt
-        case promptFormat
-        case temperature
-        case topP
-        case repeatLastN
-        case repeatPenalty
-    */
     await window.chat.createOrUpdateLLMConfigurations([
         {
             name: "gpt-3.5-turbo-1106",

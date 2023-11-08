@@ -318,7 +318,7 @@ class Chat extends EventTarget {
 
     async createOrUpdateLLMConfigurations(configurations) {
         for (const llm of configurations) {
-            const existing = await this.db.collections.llmConfiguration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
+            const existing = await this.db.collections.llm_configuration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
             let params = {
                 name: llm.name,
                 organization: llm.organization || "",
@@ -343,7 +343,7 @@ class Chat extends EventTarget {
                 params.id = crypto.randomUUID().toUpperCase();
                 params.createdAt = new Date().getTime();
                 params.modifiedAt = params.createdAt;
-                await db.collections.llmConfiguration.insert(params);
+                await db.collections.llm_configuration.insert(params);
             }
         }
     }
@@ -622,7 +622,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         case repeatLastN
         case repeatPenalty
     */
-    await chat.createOrUpdateLLMConfigurations([
+    await this.createOrUpdateLLMConfigurations([
         {
             name: "gpt-3.5-turbo-1106",
             organization: "OpenAI",

@@ -622,7 +622,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         case repeatLastN
         case repeatPenalty
     */
-    await this.createOrUpdateLLMConfigurations([
+    await window.chat.createOrUpdateLLMConfigurations([
         {
             name: "gpt-3.5-turbo-1106",
             organization: "OpenAI",

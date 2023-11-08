@@ -254,7 +254,7 @@ class Chat extends EventTarget {
         "gpt-3.5-turbo-1106": 4097,
         "gpt-3.5-turbo-16k": 16385,
         "gpt-3.5-turbo-16k-0613": 16385,
-        "gpt-4-1106-preview": 4097,
+        "gpt-4-1106-preview": 4097, // 128k soon; should also be user-configurable then
     };
 
     constructor ({ db }) {
@@ -316,57 +316,67 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    async createOrUpdateLLMConfigurations(configurations) {
+    async setLLMConfigurationsAsNeeded(configurations) {
         const db = this.db;
+        const existingLLMs = await db.collections.llm_configuration.find().exec();
+        const updatedLLMs = [];
         for (const llm of configurations) {
-            const existing = await db.collections.llm_configuration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
-            let params = {
-                name: llm.name,
-                organization: llm.organization || "",
-                displayName: llm.displayName || "",
-                markdownDescription: llm.markdownDescription || "",
-                modelDownloadURL: llm.modelDownloadURL || "",
-                apiURL: llm.apiURL || "",
-                modifiedAt: new Date().getTime(),
-                modelInference: llm.modelInference || "",
-                context: llm.context || null,
-                nBatch: llm.nBatch || null,
-                topK: llm.topK || null,
-                reversePrompt: llm.reversePrompt || "",
-                promptFormat: llm.promptFormat || "",
-                topP: llm.topP || null,
-                repeatLastN: llm.repeatLastN || null,
-                repeatPenalty: llm.repeatPenalty || null,
-            };
+            const existing = existingLLMs.find(e => e.name === llm.name && !e.isDeleted);
+            const params = { isDeleted: false, ...llm };
             if (existing) {
-                await existing.incrementalPatch(params);
+                await existing.incrementalPatch({ modifiedAt: new Date().getTime(), ...params });
+                updatedLLMs.push(existing);
             } else {
-                params.id = crypto.randomUUID().toUpperCase();
-                params.createdAt = new Date().getTime();
-                params.modifiedAt = params.createdAt;
-                await db.collections.llm_configuration.insert(params);
+                const newLLM = { id: crypto.randomUUID().toUpperCase(), createdAt: new Date().getTime(), modifiedAt: new Date().getTime(), ...params };
+                await db.collections.llm_configuration.insert(newLLM);
             }
         }
+        existingLLMs
+            .filter(llm => !updatedLLMs.includes(llm))
+            .forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
+        const db = this.db;
         var rooms = rooms || await this.db.collections.room.find().exec();
         const botsInRoomsIDs = [...new Set(rooms.flatMap(room => room.participants))];
-        var botsInRooms = await this.db.collections.persona.findByIds(botsInRoomsIDs).exec();
+        var botsInRooms = await db.collections.persona.findByIds(botsInRoomsIDs).exec();
         botsInRooms = [...botsInRooms.values()];
-        const unusedOnlineBots = await this.db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
+        const unusedOnlineBots = await db.collections.persona.find({ selector: { online: true, id: { $not: { $in: botsInRoomsIDs } } } }).exec();
         this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { db: this.db, botsInRooms, unusedOnlineBots } }));
     }
 
     async wireUnusedPersonas() {
-        if (this.db.collections.length === 0) { return }
-        await this.db.collections.room.$.subscribe(async rooms => {
+        const db = this.db;
+        if (db.collections.length === 0) { return }
+        await db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
         await this.db.collections.persona.$.subscribe(async personas => {
             this.dispatchUnusedPersonasEvent();
         });
         this.dispatchUnusedPersonasEvent();
+    }
+
+    async wireLLMConfigurations() {
+        const db = this.db;
+        if (db.collections.length === 0) { return }
+        const setModelOptions = () => {
+            // GPT: fill in this rxdb.js code which will iterate over ALL llm_configuration objs and make a var containing an array of llm.name strings; and then iterate over ALL personas, and set their persona.modelOptions field via incrementalPatch to that array; then if the persona.selectedModel is either empty string OR a value no longer existing in the llm.name array (or better yet make it a set instead of an array, except it must be made into an array when set to persona.modelOptions), then for now-missing llm.name values in persona.selectedModel, try to select the up to date llm.name (from ALL llm_configuration objs) which shares the longest string prefix with the outdated persona.selectedModel
+            // Also familiarize yourself with this example pattern:
+            // if (!botPersona.selectedModel) {
+            //     botPersona.incrementalPatch({
+            //         selectedModel: botPersona.modelOptions[0],
+            //     });
+            // }
+        };
+        await db.collections.llm_configuration.$.subscribe(async llm => {
+            setModelOptions();
+        });
+        await db.collections.persona.$.subscribe(async personas => {
+            setModelOptions();
+        });
+        setModelOptions();
     }
 
     async ownPersonas(insideRoomsOnly) {
@@ -602,7 +612,7 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
 
-    await window.chat.createOrUpdateLLMConfigurations([
+    await window.chat.setLLMConfigurationsAsNeeded([
         {
             name: "gpt-3.5-turbo-1106",
             organization: "OpenAI",
@@ -614,6 +624,13 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             name: "gpt-4-1106-preview",
             organization: "OpenAI",
             displayName: "GPT 4 Turbo",
+            apiURL: "https:///api.openai.com/v1/chat/completions",
+            modelInference: "openai",
+        },
+        {
+            name: "gpt-4-0613",
+            organization: "OpenAI",
+            displayName: "GPT 4",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
         },

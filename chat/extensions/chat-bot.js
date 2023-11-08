@@ -251,8 +251,10 @@ class Chat extends EventTarget {
         "gpt-3.5-turbo-instruct": 4097,
         "gpt-3.5-turbo-0613": 4097,
         "gpt-3.5-turbo-0301": 4097,
+        "gpt-3.5-turbo-1106": 4097,
         "gpt-3.5-turbo-16k": 16385,
         "gpt-3.5-turbo-16k-0613": 16385,
+        "gpt-4-1106-preview": 4097,
     };
 
     constructor ({ db }) {
@@ -312,6 +314,38 @@ class Chat extends EventTarget {
         // Invoke the private constructor...
         const chat = new Chat({ db });
         return chat;
+    }
+
+    async createOrUpdateLLMConfigurations(configurations) {
+        for (const llm of configurations) {
+            const existing = await this.db.collections.llmConfiguration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
+            let params = {
+                name: llm.name,
+                organization: llm.organization || "",
+                displayName: llm.displayName || "",
+                markdownDescription: llm.markdownDescription || "",
+                modelDownloadURL: llm.modelDownloadURL || "",
+                apiURL: llm.apiURL || "",
+                modifiedAt: new Date().getTime(),
+                modelInference: llm.modelInference || "",
+                context: llm.context || null,
+                nBatch: llm.nBatch || null,
+                topK: llm.topK || null,
+                reversePrompt: llm.reversePrompt || "",
+                promptFormat: llm.promptFormat || "",
+                topP: llm.topP || null,
+                repeatLastN: llm.repeatLastN || null,
+                repeatPenalty: llm.repeatPenalty || null,
+            };
+            if (existing) {
+                await existing.incrementalPatch(params);
+            } else {
+                params.id = crypto.randomUUID().toUpperCase();
+                params.createdAt = new Date().getTime();
+                params.modifiedAt = params.createdAt;
+                await db.collections.llmConfiguration.insert(params);
+            }
+        }
     }
 
     async dispatchUnusedPersonasEvent(rooms) {
@@ -473,6 +507,7 @@ class Chat extends EventTarget {
                     headers: {
                         "Content-Type": "application/json",
                         // "X-Chat-Trace-Event": documentData.id,
+                        //"HTTP-Referer": `${YOUR_SITE_URL}`,
                     },
                     body: JSON.stringify({
                         model: botPersona.selectedModel,
@@ -506,7 +541,10 @@ class Chat extends EventTarget {
 
 // export { Chat };
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -560,9 +598,113 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
     return botsInRooms + [botPersona];
 });
 
-chat.addEventListener("finishedInitialSync", (event) => {
+chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
-    // const replications = event.detail.replications;
+
+        /*
+            case id
+        case name
+        case markdownDescription
+        case providedByExtension
+        case modelDownloadURL
+        case apiURL
+        case createdAt
+        case modifiedAt
+        case isDeleted
+        case modelInference
+        case context
+        case nBatch
+        case topK
+        case reversePrompt
+        case promptFormat
+        case temperature
+        case topP
+        case repeatLastN
+        case repeatPenalty
+    */
+    await chat.createOrUpdateLLMConfigurations([
+        {
+            name: "gpt-3.5-turbo-1106",
+            organization: "OpenAI",
+            displayName: "GPT 3.5 Turbo",
+            apiURL: "https:///api.openai.com/v1/chat/completions",
+            modelInference: "openai",
+        },
+        {
+            name: "gpt-4-1106-preview",
+            organization: "OpenAI",
+            displayName: "GPT 4 Turbo",
+            apiURL: "https:///api.openai.com/v1/chat/completions",
+            modelInference: "openai",
+        },
+        // {
+        //     name: "mistral-7b-openorca.Q4_K_M",
+        //     organization: "OpenOrca",
+        //     displayName: "Mistral 7B OpenOrca",
+        //     modelDownloadURL: "https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF/blob/main/mistral-7b-openorca.Q5_K_M.gguf",
+        //     memoryRequirement: 5_130_000,
+        // },
+        // {
+        //     name: "openchat_3.5.Q5_K_M",
+        //     organization: "OpenChat",
+        //     displayName: "OpenChat 3.5",
+        //     modelDownloadURL: "https://huggingface.co/TheBloke/openchat_3.5-GGUF/blob/main/openchat_3.5.Q5_K_M.gguf",
+        //     memoryRequirement: 5_130_000,
+        //     repeatPenalty: 1.1,
+        //     context: 8192,
+        //     temperature: 0.8,
+        //     topP: 0.9,
+        //     topK: 40,
+        //     nBatch: 512,
+        //     modelInference: "llama",
+        // },
+        {
+            name: "orca-mini-3b.Q5_0",
+            organization: "Pankaj Mathur",
+            displayName: "Orca Mini 3B",
+            modelDownloadURL: "https://huggingface.co/Aryanne/Orca-Mini-3B-gguf/blob/main/q5_0-orca-mini-3b.gguf",
+            memoryRequirement: 2_400_000,
+            context: 1024,
+            repeatPenalty: 1.1,
+            promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
+            temp: 0.89999997615814209,
+            modelInference: "llama",
+            topP: 0.94999998807907104,
+            nBatch: 512,
+            topK: 40,
+        },
+        {
+            name: "orca-mini-v3-7b.Q5_K_M",
+            organization: "Pankaj Mathur",
+            displayName: "Orca Mini 7B",
+            modelDownloadURL: "https://huggingface.co/TheBloke/orca_mini_v3_7B-GGUF/blob/main/orca_mini_v3_7b.Q5_K_M.gguf",
+            memoryRequirement: 4_780_000,
+            context: 1024,
+            repeatPenalty: 1.1,
+            promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
+            temp: 0.89999997615814209,
+            modelInference: "llama",
+            topP: 0.94999998807907104,
+            nBatch: 512,
+            topK: 40,
+        },
+        {
+            name: "mamba-gpt-3B-v4.Q5_1",
+            organization: "CobraMamba",
+            displayName: "Mamba GPT 3B v4",
+            modelDownloadURL: "https://huggingface.co/Aryanne/Mamba-gpt-3B-v4-ggml-and-gguf/blob/main/q5_1-gguf-mamba-gpt-3B_v4.gguf",
+            memoryRequirement: 2_600_000,
+            temperature: 0.8,
+            context: 1024,
+            repeatPenalty: 1.1,
+            topP: 0.89999997615814209,
+            topK: 80,
+            modelInference: "llama",
+            nBatch: 512,
+            promptFormat: "<|prompt|>{{prompt}}</s><|answer|>",
+        },
+    ]);
+
     db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
         if (documentData.createdAt < window.chat.onlineAt.getTime()) {
             return;

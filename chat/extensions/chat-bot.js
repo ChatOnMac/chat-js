@@ -360,25 +360,30 @@ class Chat extends EventTarget {
 
     async wireLLMConfigurations() {
         const db = this.db;
-        if (db.collections.length === 0) { return }
-        const setModelOptions = () => {
-            // GPT: fill in this rxdb.js code which will iterate over ALL llm_configuration objs and make a var containing an array of llm.name strings; and then iterate over ALL personas, and set their persona.modelOptions field via incrementalPatch to that array; then if the persona.selectedModel is either empty string OR a value no longer existing in the llm.name array (or better yet make it a set instead of an array, except it must be made into an array when set to persona.modelOptions), then for now-missing llm.name values in persona.selectedModel, try to select the up to date llm.name (from ALL llm_configuration objs) which shares the longest string prefix with the outdated persona.selectedModel
-            // Also familiarize yourself with this example pattern:
-            // if (!botPersona.selectedModel) {
-            //     botPersona.incrementalPatch({
-            //         selectedModel: botPersona.modelOptions[0],
-            //     });
-            // }
+        if (!db.collections.length) return;
+
+        const getModelOptions = async () => (await db.collections.llm_configuration.find().exec()).map(llm => llm.name);
+
+        const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((bestMatch, llmName) =>
+            llmName.startsWith(selectedModel) && llmName.length > bestMatch.length ? llmName : bestMatch, '');
+
+        const setModelOptions = async () => {
+            const llmNames = await getModelOptions();
+            const personas = await db.collections.persona.find().exec();
+
+            personas.forEach(persona => {
+                persona.incrementalPatch({
+                    modelOptions: llmNames,
+                    selectedModel: llmNames.includes(persona.selectedModel) ? persona.selectedModel : findBestMatch(llmNames, persona.selectedModel)
+                });
+            });
         };
-        await db.collections.llm_configuration.$.subscribe(async llm => {
-            setModelOptions();
-        });
-        await db.collections.persona.$.subscribe(async personas => {
-            setModelOptions();
-        });
+
+        await db.collections.llm_configuration.$.subscribe(setModelOptions);
+        await db.collections.persona.$.subscribe(setModelOptions);
         setModelOptions();
     }
-
+    
     async ownPersonas(insideRoomsOnly) {
         // TODO: Multiple bots in same room.
         const botPersonas = await this.getBotPersonas(null, insideRoomsOnly);

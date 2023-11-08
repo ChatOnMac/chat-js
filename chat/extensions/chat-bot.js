@@ -317,8 +317,9 @@ class Chat extends EventTarget {
     }
 
     async createOrUpdateLLMConfigurations(configurations) {
+        const db = this.db;
         for (const llm of configurations) {
-            const existing = await this.db.collections.llm_configuration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
+            const existing = await db.collections.llm_configuration.findOne({ selector: { name: llm.name, isDeleted: false } }).exec();
             let params = {
                 name: llm.name,
                 organization: llm.organization || "",

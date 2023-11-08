@@ -294,6 +294,7 @@ class Chat extends EventTarget {
         await this.installNativeHostBehaviors()
 
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
+        await this.wireLLMConfigurations();
         await this.keepOwnPersonasOnline();
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
@@ -370,7 +371,6 @@ class Chat extends EventTarget {
         const setModelOptions = async () => {
             const llmNames = await getModelOptions();
             const personas = await db.collections.persona.find().exec();
-
             personas.forEach(persona => {
                 persona.incrementalPatch({
                     modelOptions: llmNames,
@@ -589,15 +589,12 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
         }
     }
 
-    const modelOptions = ["gpt-3.5-turbo", "gpt-4"];
-
     var existingBots = await window.chat.ownPersonas(false);
     existingBots = [...existingBots].filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
     if (existingBots.length > 0) {
         const existingBot = existingBots[0];
         existingBot.incrementalPatch({
             online: true,
-            modelOptions:  modelOptions,
             modifiedAt: new Date().getTime(),
         });
         return existingBot;
@@ -608,7 +605,6 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
         name: nextName,
         personaType: "bot",
         online: true,
-        modelOptions: modelOptions,
         modifiedAt: new Date().getTime(),
     });
     return botsInRooms + [botPersona];
@@ -668,6 +664,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             memoryRequirement: 2_400_000,
             context: 1024,
             repeatPenalty: 1.1,
+            systemFormat: "### System:\n{{prompt}}\n\n",
             promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
             modelInference: "llama",
@@ -683,6 +680,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             memoryRequirement: 4_780_000,
             context: 1024,
             repeatPenalty: 1.1,
+            systemFormat: "### System:\n{{prompt}}\n\n",
             promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
             modelInference: "llama",
@@ -703,7 +701,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topK: 80,
             modelInference: "llama",
             nBatch: 512,
-            promptFormat: "<|prompt|>{{prompt}}</s><|answer|>",
+            systemFormat: "<|prompt|>### System:\n{{prompt}}\n\n",
+            promptFormat: "### User: {{prompt}}</s><|answer|>",
         },
     ]);
 

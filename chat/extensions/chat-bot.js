@@ -349,7 +349,7 @@ class Chat extends EventTarget {
 
     async wireUnusedPersonas() {
         const db = this.db;
-        if (db.collections.length === 0) { return }
+        if (typeof db.collections.persona === 'undefined') { return }
         await db.collections.room.$.subscribe(async rooms => {
             this.dispatchUnusedPersonasEvent();
         });
@@ -361,7 +361,7 @@ class Chat extends EventTarget {
 
     async wireLLMConfigurations() {
         const db = this.db;
-        if (!db.collections.length) return;
+        if (typeof db.collections.llm_configuration === 'undefined') { return }
 
         const getModelOptions = async () => (await db.collections.llm_configuration.find().exec()).map(llm => llm.name);
         const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
@@ -398,7 +398,7 @@ class Chat extends EventTarget {
     }
     
     async keepOwnPersonasOnline() {
-        if (this.db.collections.length === 0) { return }
+        if (typeof db.collections.persona === 'undefined') { return }
         const botPersonas = await this.ownPersonas(true);
         for (const botPersona of botPersonas) {
             if (!botPersona.online) {
@@ -418,7 +418,7 @@ class Chat extends EventTarget {
     }
 
     async getBotPersonas(room, insideRoomsOnly) {
-        if (this.db.collections.length === 0) { return }
+        if (typeof db.collections.persona === 'undefined') { return }
         let extension = await this.db.collections.code_extension.findOne().exec();
         if (!extension) {
             console.log("No extension found!");
@@ -429,7 +429,7 @@ class Chat extends EventTarget {
     }
 
     async getProvidedBotsIn(extension, room, insideRoomsOnly) {
-        if (this.db.collections.length === 0) { return [] }
+        if (typeof db.collections.persona === 'undefined') { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {
             let allInRoomMap = await this.db.collections.persona.findByIds(room.participants).exec();

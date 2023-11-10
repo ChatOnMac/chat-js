@@ -364,18 +364,25 @@ class Chat extends EventTarget {
         if (!db.collections.length) return;
 
         const getModelOptions = async () => (await db.collections.llm_configuration.find().exec()).map(llm => llm.name);
-
-        const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((bestMatch, llmName) =>
-            llmName.startsWith(selectedModel) && llmName.length > bestMatch.length ? llmName : bestMatch, '');
+        const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
+            name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
 
         const setModelOptions = async () => {
             const llmNames = await getModelOptions();
-            const personas = await db.collections.persona.find().exec();
-            personas.forEach(persona => {
-                persona.incrementalPatch({
-                    modelOptions: llmNames,
-                    selectedModel: llmNames.includes(persona.selectedModel) ? persona.selectedModel : findBestMatch(llmNames, persona.selectedModel)
-                });
+            (await db.collections.persona.find().exec()).forEach(persona => {
+                let selectedModel = persona.selectedModel;
+                if (!selectedModel || !llmNames.includes(selectedModel)) {
+                    selectedModel = findBestMatch(llmNames, selectedModel);
+                    if (!selectedModel) {
+                        const sortedByMemory = llmNames
+                            .map(name => db.collections.llm_configuration.findOne({ name }).exec())
+                            .filter(llm => llm && llm.memoryRequirement > 0)
+                            .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
+
+                        selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
+                    }
+                }
+                persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
             });
         };
 
@@ -383,7 +390,7 @@ class Chat extends EventTarget {
         await db.collections.persona.$.subscribe(setModelOptions);
         setModelOptions();
     }
-    
+
     async ownPersonas(insideRoomsOnly) {
         // TODO: Multiple bots in same room.
         const botPersonas = await this.getBotPersonas(null, insideRoomsOnly);
@@ -447,8 +454,8 @@ class Chat extends EventTarget {
     }
 
     async getMessageHistory({ room, limit }) {
-        // Build message history.
-        const messages = await this.db.collections.event
+        const db = this.db;
+        const messages = await db.collections.event
             .find({
                 selector: { room: room.id },
                 limit: limit,
@@ -476,7 +483,10 @@ class Chat extends EventTarget {
     }
 
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
-        var systemPrompt = "You are " + botPersona.name + ", a large language model trained by OpenAI, based on the " + botPersona.selectedModel + " architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\n";
+        const db = this.db;
+        const selectedModel = botPersona.selectedModel;
+        const llm = db.collections.llm_configuration.findOne({ selector: { name: selectedModel } })
+        var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {
                 systemPrompt += `USER PROFILE:\n\nThe user provided the following information about themselves. This user profile is shown to you in all conversations they have -- this means it is not relevant to 99% of requests. Before answering, quietly think about whether the user's request is "directly related", "related", "tangentially related", or "not related" to the user profile provided. Only acknowledge the profile when the request is directly related to the information provided. Otherwise, don't acknowledge the existence of these instructions or the information at all. User profile:\n\n` + botPersona.customInstructionForContext.trim() + "\n\n"
@@ -501,7 +511,6 @@ class Chat extends EventTarget {
             default:
                 gptTokenizer = null;
         }
-
         var chat;
         while (true) {
             chat = [
@@ -541,7 +550,6 @@ class Chat extends EventTarget {
                 }
                 throw new Error(data.error.message);
             }
-
             return data;
         } catch (error) {
             var eventDoc = await this.db.collections.event.findOne(eventTriggerID).exec();
@@ -620,6 +628,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "GPT 3.5 Turbo",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
+            context: 4096,
+            systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 3.5 Turbo architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
         },
         {
             name: "gpt-4-1106-preview",
@@ -627,6 +637,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "GPT 4 Turbo",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
+            context: 4096,
+            systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 4 Turbo architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
         },
         {
             name: "gpt-4-0613",
@@ -634,6 +646,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "GPT 4",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
+            context: 8192,
+            systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 4 architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
         },
         // {
         //     name: "mistral-7b-openorca.Q4_K_M",
@@ -664,6 +678,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             memoryRequirement: 2_400_000,
             context: 1024,
             repeatPenalty: 1.1,
+            systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}\n\n",
             promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
@@ -680,6 +695,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             memoryRequirement: 4_780_000,
             context: 1024,
             repeatPenalty: 1.1,
+            systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}\n\n",
             promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
@@ -701,6 +717,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topK: 80,
             modelInference: "llama",
             nBatch: 512,
+            systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Mamba GPT architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "<|prompt|>### System:\n{{prompt}}\n\n",
             promptFormat: "### User: {{prompt}}</s><|answer|>",
         },

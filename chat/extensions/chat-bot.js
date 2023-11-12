@@ -369,8 +369,8 @@ class Chat extends EventTarget {
             const allPersonas = await db.collections.persona.find().exec();
             for (const persona of allPersonas) {
                 let selectedModel = persona.selectedModel;
-            //     if (!selectedModel || !llmNames.includes(selectedModel)) {
-            //         selectedModel = findBestMatch(llmNames, selectedModel);
+                if (!selectedModel || !llmNames.includes(selectedModel)) {
+                    selectedModel = findBestMatch(llmNames, selectedModel);
             //         if (!selectedModel) {
             //             const sortedByMemory = llmNames
             //                 .map(name => db.collections.llm_configuration.findOne({ name }).exec())
@@ -378,7 +378,7 @@ class Chat extends EventTarget {
             //                 .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
             //             selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
             //         }
-            //     }
+                }
             //     persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
             }
         };

@@ -367,8 +367,8 @@ class Chat extends EventTarget {
         const setModelOptions = async () => {
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
-            // for (const persona of allPersonas) {
-            //     let selectedModel = persona.selectedModel;
+            for (const persona of allPersonas) {
+                let selectedModel = persona.selectedModel;
             //     if (!selectedModel || !llmNames.includes(selectedModel)) {
             //         selectedModel = findBestMatch(llmNames, selectedModel);
             //         if (!selectedModel) {
@@ -380,7 +380,7 @@ class Chat extends EventTarget {
             //         }
             //     }
             //     persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
-            // }
+            }
         };
 
         db.collections.llm_configuration.$.subscribe(setModelOptions);

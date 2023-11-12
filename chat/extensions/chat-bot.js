@@ -376,7 +376,7 @@ class Chat extends EventTarget {
                             .map(name => db.collections.llm_configuration.findOne({ name }).exec())
                             .filter(llm => llm && llm.memoryRequirement > 0)
                             .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
-            //             selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
+                        selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
                     }
                 }
             //     persona.incrementalPatch({ modelOptions: llmNames, selectedModel });

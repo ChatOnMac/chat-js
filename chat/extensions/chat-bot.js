@@ -356,7 +356,6 @@ class Chat extends EventTarget {
     }
 
     async wireLLMConfigurations() {
-        debugger;
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
         

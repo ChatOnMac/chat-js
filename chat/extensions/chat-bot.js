@@ -367,20 +367,20 @@ class Chat extends EventTarget {
         const setModelOptions = async () => {
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
-            for (const persona of allPersonas) {
-                let selectedModel = persona.selectedModel;
-                if (!selectedModel || !llmNames.includes(selectedModel)) {
-                    selectedModel = findBestMatch(llmNames, selectedModel);
-                    if (!selectedModel) {
-                        const sortedByMemory = llmNames
-                            .map(name => db.collections.llm_configuration.findOne({ name }).exec())
-                            .filter(llm => llm && llm.memoryRequirement > 0)
-                            .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
-                        selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
-                    }
-                }
-                persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
-            }
+            // for (const persona of allPersonas) {
+            //     let selectedModel = persona.selectedModel;
+            //     if (!selectedModel || !llmNames.includes(selectedModel)) {
+            //         selectedModel = findBestMatch(llmNames, selectedModel);
+            //         if (!selectedModel) {
+            //             const sortedByMemory = llmNames
+            //                 .map(name => db.collections.llm_configuration.findOne({ name }).exec())
+            //                 .filter(llm => llm && llm.memoryRequirement > 0)
+            //                 .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
+            //             selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
+            //         }
+            //     }
+            //     persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
+            // }
         };
 
         db.collections.llm_configuration.$.subscribe(setModelOptions);

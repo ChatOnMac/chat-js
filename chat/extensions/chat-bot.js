@@ -313,10 +313,15 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    async setLLMConfigurationsAsNeeded(configurations) {
-        const db = this.db;
+    findBestMatch (llmNames, selectedModel) {
+        llmNames.reduce((best, name) =>
+            name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
+    }
+
+    async setLLMConfigurationsAsNeeded (configurations) {
         const existingLLMs = await db.collections.llm_configuration.find().exec();
         const updatedLLMs = [];
+
         for (const llm of configurations) {
             const existing = existingLLMs.find(e => e.name === llm.name && !e.isDeleted);
             const params = { isDeleted: false, ...llm };
@@ -324,10 +329,19 @@ class Chat extends EventTarget {
                 await existing.incrementalPatch({ modifiedAt: new Date().getTime(), ...params });
                 updatedLLMs.push(existing);
             } else {
-                const newLLM = { id: crypto.randomUUID().toUpperCase(), createdAt: new Date().getTime(), modifiedAt: new Date().getTime(), ...params };
+                const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+                const selectedModel = this.findBestMatch(llmNames, llm.name) ||
+                    (llmNames.find(name => db.collections.llm_configuration.findOne({ name }).exec()?.memoryRequirement > 0) || {}).name || '';
+                const newLLM = {
+                    id: crypto.randomUUID().toUpperCase(),
+                    createdAt: new Date().getTime(),
+                    modifiedAt: new Date().getTime(),
+                    ...params,
+                };
                 await db.collections.llm_configuration.insert(newLLM);
             }
         }
+
         existingLLMs
             .filter(llm => !updatedLLMs.includes(llm))
             .forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
@@ -358,38 +372,29 @@ class Chat extends EventTarget {
     async wireLLMConfigurations() {
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
-        
+    
         const getModelOptions = async () =>
             (await db.collections.llm_configuration.find().exec())
                 .map(llm => llm.name)
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
-            name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
-
-        const arrayEquals = (array1, array2) =>
-            array1.length === array2.length && array1.every((value, index) => value === array2[index]);
-
-        const setModelOptions = async () => {
+    
+        const setModelOptions = (async () => {
+            const llmConfigurations = await db.collections.llm_configuration.find().exec();
+            await this.setLLMConfigurationsAsNeeded(llmConfigurations);
+    
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
+    
             for (const persona of allPersonas) {
-                let selectedModel = persona.selectedModel;
-                if (!selectedModel || !llmNames.includes(selectedModel)) {
-                    selectedModel = findBestMatch(llmNames, selectedModel);
-                    if (!selectedModel) {
-                        const sortedByMemory = llmNames
-                            .map(name => db.collections.llm_configuration.findOne({ name }).exec())
-                            .filter(llm => llm && llm.memoryRequirement > 0)
-                            .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
-                        selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
-                    }
-                }
+                const selectedModel = persona.selectedModel || this.findBestMatch(llmNames, persona.selectedModel) ||
+                    (llmNames.find(name => db.collections.llm_configuration.findOne({ name }).exec()?.memoryRequirement > 0) || {}).name || '';
+    
                 if (persona.selectedModel !== selectedModel || !arrayEquals(persona.modelOptions, llmNames)) {
                     await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
                 }
             }
-        };
-
+        }).bind(this);
+    
         db.collections.llm_configuration.$.subscribe(setModelOptions);
         db.collections.persona.$.subscribe(setModelOptions);
         setModelOptions();

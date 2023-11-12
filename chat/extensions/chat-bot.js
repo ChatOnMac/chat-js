@@ -382,6 +382,11 @@ class Chat extends EventTarget {
                     }
                 }
                 if (persona.selectedModel != selectedModel || persona.modelOptions != llmNames) {
+                    console.log("----")
+                    console.log(persona.selectedModel)
+                    console.log(selectedModel)
+                    console.log(persona.modelOptions)
+                    console.log(llmNames)
                     // await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
                 }
             }

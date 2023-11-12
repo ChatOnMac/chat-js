@@ -366,6 +366,9 @@ class Chat extends EventTarget {
         const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
             name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
 
+        const arrayEquals = (array1, array2) =>
+            array1.length === array2.length && array1.every((value, index) => value === array2[index]);
+
         const setModelOptions = async () => {
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
@@ -381,15 +384,8 @@ class Chat extends EventTarget {
                         selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
                     }
                 }
-                if (persona.selectedModel !== selectedModel || persona.modelOptions !== llmNames) {
-                    console.log("----")
-                    console.log(persona.selectedModel)
-                    console.log(selectedModel)
-                    console.log(persona.selectedModel !== selectedModel)
-                    console.log(persona.modelOptions)
-                    console.log(llmNames)
-                    console.log(persona.modelOptions !== llmNames)
-                    // await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
+                if (persona.selectedModel !== selectedModel || !arrayEquals(persona.modelOptions, llmNames)) {
+                    await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
                 }
             }
         };

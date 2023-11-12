@@ -225,7 +225,7 @@ class ChatParentBridge {
 
     async finishedSyncingDocsFromCanonical() {
         await this.replicationInSync()
-        await this.onFinishedSyncingDocsFromCanonical();
+        // await this.onFinishedSyncingDocsFromCanonical();
     }
 }
 

@@ -382,8 +382,8 @@ class Chat extends EventTarget {
             });
         };
 
-        await db.collections.llm_configuration.$.subscribe(setModelOptions);
-        await db.collections.persona.$.subscribe(setModelOptions);
+        db.collections.llm_configuration.$.subscribe(setModelOptions);
+        db.collections.persona.$.subscribe(setModelOptions);
         setModelOptions();
     }
 

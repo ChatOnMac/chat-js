@@ -362,7 +362,7 @@ class Chat extends EventTarget {
     async wireLLMConfigurations() {
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
-
+        
         const getModelOptions = async () => (await db.collections.llm_configuration.find().exec()).map(llm => llm.name);
         const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
             name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
@@ -628,7 +628,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         {
             name: "gpt-3.5-turbo-1106",
             organization: "OpenAI",
-            displayName: "GPT 3.5 Turbo",
+            displayName: "OpenAI GPT 3.5 Turbo",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
             context: 4096,
@@ -637,7 +637,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         {
             name: "gpt-4-1106-preview",
             organization: "OpenAI",
-            displayName: "GPT 4 Turbo",
+            displayName: "OpenAI GPT 4 Turbo",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
             context: 4096,
@@ -646,7 +646,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         {
             name: "gpt-4-0613",
             organization: "OpenAI",
-            displayName: "GPT 4",
+            displayName: "OpenAI GPT 4",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
             context: 8192,

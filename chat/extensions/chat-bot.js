@@ -379,7 +379,9 @@ class Chat extends EventTarget {
                         selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
                     }
                 }
-            //     persona.incrementalPatch({ modelOptions: llmNames, selectedModel });
+                if (persona.selectedModel != selectedModel || persona.modelOptions != llmNames) {
+                    await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
+                }
             }
         };
 

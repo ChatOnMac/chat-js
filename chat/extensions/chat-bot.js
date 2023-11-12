@@ -290,7 +290,7 @@ class Chat extends EventTarget {
         await this.installNativeHostBehaviors()
 
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
-        await this.wireLLMConfigurations();
+        // await this.wireLLMConfigurations();
         // await this.keepOwnPersonasOnline();
         // // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // // await this.offerUnusedPersonas();

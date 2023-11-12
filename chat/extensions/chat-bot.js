@@ -398,6 +398,7 @@ class Chat extends EventTarget {
     }
     
     async keepOwnPersonasOnline() {
+        const db = this.db;
         if (typeof db.collections.persona === 'undefined') { return }
         const botPersonas = await this.ownPersonas(true);
         for (const botPersona of botPersonas) {
@@ -418,6 +419,7 @@ class Chat extends EventTarget {
     }
 
     async getBotPersonas(room, insideRoomsOnly) {
+        const db = this.db;
         if (typeof db.collections.persona === 'undefined') { return }
         let extension = await this.db.collections.code_extension.findOne().exec();
         if (!extension) {
@@ -429,6 +431,7 @@ class Chat extends EventTarget {
     }
 
     async getProvidedBotsIn(extension, room, insideRoomsOnly) {
+        const db = this.db;
         if (typeof db.collections.persona === 'undefined') { return [] }
         var bots = [];
         if (room && room.participants && room.participants.length > 0) {

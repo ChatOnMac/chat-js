@@ -224,11 +224,7 @@ class ChatParentBridge {
     }
 
     async finishedSyncingDocsFromCanonical() {
-        for (const replicationState of Object.values(this.state.replications)) {
-            replicationState.reSync();
-        }
         await this.replicationInSync()
-    
         await this.onFinishedSyncingDocsFromCanonical();
     }
 }

@@ -291,11 +291,11 @@ class Chat extends EventTarget {
 
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         // await this.wireLLMConfigurations();
-        // await this.keepOwnPersonasOnline();
-        // // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
-        // // await this.offerUnusedPersonas();
-        // // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
-        // await this.wireUnusedPersonas();
+        await this.keepOwnPersonasOnline();
+        // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
+        // await this.offerUnusedPersonas();
+        // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
+        await this.wireUnusedPersonas();
     }
 
     static async init() {

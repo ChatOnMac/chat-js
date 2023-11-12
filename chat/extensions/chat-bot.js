@@ -290,7 +290,7 @@ class Chat extends EventTarget {
         await this.installNativeHostBehaviors()
 
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
-        // await this.wireLLMConfigurations();
+        await this.wireLLMConfigurations();
         await this.keepOwnPersonasOnline();
         // this.offerUnusedPersonas = this.offerUnusedPersonas.bind(this);
         // await this.offerUnusedPersonas();
@@ -356,6 +356,7 @@ class Chat extends EventTarget {
     }
 
     async wireLLMConfigurations() {
+        debugger;
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
         
@@ -374,7 +375,6 @@ class Chat extends EventTarget {
                             .map(name => db.collections.llm_configuration.findOne({ name }).exec())
                             .filter(llm => llm && llm.memoryRequirement > 0)
                             .sort((a, b) => a.memoryRequirement - b.memoryRequirement);
-
                         selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
                     }
                 }

@@ -642,6 +642,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelInference: "openai",
             context: 4096,
             systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 3.5 Turbo architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            defaultPriority=3,
         },
         {
             name: "gpt-4-1106-preview",
@@ -651,6 +652,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelInference: "openai",
             context: 4096,
             systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 4 Turbo architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            defaultPriority=2,
         },
         {
             name: "gpt-4-0613",
@@ -660,6 +662,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelInference: "openai",
             context: 8192,
             systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 4 architecture. Knowledge cutoff: 2022-01 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            defaultPriority=1,
         },
         // {
         //     name: "mistral-7b-openorca.Q4_K_M",
@@ -698,6 +701,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topP: 0.94999998807907104,
             nBatch: 512,
             topK: 40,
+            defaultPriority=103,
         },
         {
             name: "orca-mini-v3-7b.Q5_K_M",
@@ -715,6 +719,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topP: 0.94999998807907104,
             nBatch: 512,
             topK: 40,
+            defaultPriority=102,
         },
         {
             name: "mamba-gpt-3B-v4.Q5_1",
@@ -732,6 +737,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Mamba GPT architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "<|prompt|>### System:\n{{prompt}}\n\n",
             promptFormat: "### User: {{prompt}}</s><|answer|>",
+            defaultPriority=101,
         },
     ]);
 
@@ -755,11 +761,11 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             console.log("No matching bot to emit from.")
             return;
         }
-        if (!botPersona.selectedModel) {
-            botPersona.incrementalPatch({
-                selectedModel: botPersona.modelOptions[0],
-            });
-        }
+        // if (!botPersona.selectedModel) {
+        //     botPersona.incrementalPatch({
+        //         selectedModel: botPersona.modelOptions[0],
+        //     });
+        // }
 
         try {
             const data = await window.chat.retryableOpenAIChatCompletion(

@@ -381,6 +381,8 @@ class Chat extends EventTarget {
                         selectedModel = sortedByMemory.length > 0 ? sortedByMemory[0].name : '';
                     }
                 }
+                console.log("setting model options")
+                console.log(llmNames)
                 if (persona.selectedModel != selectedModel || persona.modelOptions != llmNames) {
                     await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
                 }

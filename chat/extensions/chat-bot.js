@@ -360,7 +360,10 @@ class Chat extends EventTarget {
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
         
-        const getModelOptions = async () => (await db.collections.llm_configuration.find().exec()).map(llm => llm.name);
+        const getModelOptions = async () =>
+            (await db.collections.llm_configuration.find().exec())
+                .map(llm => llm.name)
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         const findBestMatch = (llmNames, selectedModel) => llmNames.reduce((best, name) =>
             name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
 

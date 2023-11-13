@@ -320,8 +320,6 @@ class Chat extends EventTarget {
     }
 
     async setLLMConfigurationsAsNeeded (configurations) {
-        return;
-
         const db = this.db;
         const existingLLMs = await db.collections.llm_configuration.find().exec();
         const updatedLLMs = [];
@@ -648,6 +646,7 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 
 chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
+return;
 
     await window.chat.setLLMConfigurationsAsNeeded([
         {

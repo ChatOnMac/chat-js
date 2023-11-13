@@ -34,6 +34,7 @@ import { replicateRxCollection } from "npm:rxdb@14.17.1/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb@14.17.1/plugins/storage-memory";
 import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
 import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
+import llamaTokenizer from "jsdelivr.gh:belladoreai/llama-tokenizer-js@b88929eb8c462c/llama-tokenizer.js";
 
 // addRxPlugin(RxDBDevModePlugin);
 
@@ -313,12 +314,13 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    findBestMatch (llmNames, selectedModel) {
-        llmNames.reduce((best, name) =>
-            name.startsWith(selectedModel) && name.length > best.length ? name : best, '');
+    async personaLLM (persona) {
+        const db = this.db;
+        return await db.collections.llm_configuration.findOne({ selector:{ usedByPersona: persona.id } }).exec();
     }
 
     async setLLMConfigurationsAsNeeded (configurations) {
+        const db = this.db;
         const existingLLMs = await db.collections.llm_configuration.find().exec();
         const updatedLLMs = [];
 
@@ -330,8 +332,6 @@ class Chat extends EventTarget {
                 updatedLLMs.push(existing);
             } else {
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-                const selectedModel = this.findBestMatch(llmNames, llm.name) ||
-                    (llmNames.find(name => db.collections.llm_configuration.findOne({ name }).exec()?.memoryRequirement > 0) || {}).name || '';
                 const newLLM = {
                     id: crypto.randomUUID().toUpperCase(),
                     createdAt: new Date().getTime(),
@@ -386,11 +386,8 @@ class Chat extends EventTarget {
             const allPersonas = await db.collections.persona.find().exec();
     
             for (const persona of allPersonas) {
-                const selectedModel = persona.selectedModel || this.findBestMatch(llmNames, persona.selectedModel) ||
-                    (llmNames.find(name => db.collections.llm_configuration.findOne({ name }).exec()?.memoryRequirement > 0) || {}).name || '';
-    
-                if (persona.selectedModel !== selectedModel || !arrayEquals(persona.modelOptions, llmNames)) {
-                    await persona.incrementalPatch({ modelOptions: llmNames, selectedModel, modifiedAt: new Date().getTime() });
+                if (!arrayEquals(persona.modelOptions, llmNames)) {
+                    await persona.incrementalPatch({ modelOptions: llmNames, modifiedAt: new Date().getTime() });
                 }
             }
         }).bind(this);
@@ -496,8 +493,7 @@ class Chat extends EventTarget {
 
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         const db = this.db;
-        const selectedModel = botPersona.selectedModel;
-        const llm = db.collections.llm_configuration.findOne({ selector: { name: selectedModel } })
+        const llm = personaLLM(botPersona);
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {
@@ -513,12 +509,12 @@ class Chat extends EventTarget {
         
         var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
 
-        const tokenLimit = this.tokenLimits[botPersona.selectedModel] ?? 4000;
+        const tokenLimit = this.tokenLimits[llm.name] ?? 4000;
         let gptTokenizer;
-        switch (botPersona.selectedModel) {
-            case "gpt-3.5-turbo":
+        switch (llm.name) {
+            case "gpt-3.5-turbo", "gpt-3.5-turbo-1106":
                 gptTokenizer = gpt35TurboTokenizer;
-            case "gpt-4":
+            case "gpt-4", "gpt-4-1106-preview", "gpt-4-0613":
                 gptTokenizer = gpt4Tokenizer;
             default:
                 gptTokenizer = null;
@@ -530,8 +526,27 @@ class Chat extends EventTarget {
                 ...messageHistory,
                 { role: "user", content: content },
             ];
-            if ((gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit)) || messageHistory.length === 0) {
+            if (messageHistory.length === 0) {
                 break;
+            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit)) {
+                break;
+            } else if (llm.modelInference === "llama") {
+                let resultString = "";
+                for (let i = 0; i < chat.length; i++) {
+                    const currentMessage = chat[i];
+                    const isUserMessage = currentMessage.role === "user";
+                    if (isUserMessage) {
+                        const formattedUserPrompt = llm.promptFormat.replace("{{prompt}}", currentMessage.content);
+                        resultString += formattedUserPrompt;
+
+                        if (i < chat.length - 1 && chat[i + 1].role !== "user") {
+                            resultString += chat[i + 1].content;
+                        }
+                    }
+                }
+                if (llamaTokenizer.encode(resultString).length <= tokenLimit) {
+                    break;
+                }
             }
             messageHistory.shift();
         }
@@ -547,7 +562,7 @@ class Chat extends EventTarget {
                         //"HTTP-Referer": `${YOUR_SITE_URL}`,
                     },
                     body: JSON.stringify({
-                        model: botPersona.selectedModel,
+                        model: llm.name,
                         temperature: botPersona.modelTemperature,
                         messages: chat,
                     }),
@@ -761,12 +776,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             console.log("No matching bot to emit from.")
             return;
         }
-        // if (!botPersona.selectedModel) {
-        //     botPersona.incrementalPatch({
-        //         selectedModel: botPersona.modelOptions[0],
-        //     });
-        // }
-
+        
         try {
             const data = await window.chat.retryableOpenAIChatCompletion(
                 { eventTriggerID: documentData.id, botPersona, room, content: documentData.content });

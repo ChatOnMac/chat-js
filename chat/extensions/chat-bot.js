@@ -320,6 +320,8 @@ class Chat extends EventTarget {
     }
 
     async setLLMConfigurationsAsNeeded (configurations) {
+        return;
+
         const db = this.db;
         const existingLLMs = await db.collections.llm_configuration.find().exec();
         const updatedLLMs = [];

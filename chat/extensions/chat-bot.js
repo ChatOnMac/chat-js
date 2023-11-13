@@ -378,8 +378,7 @@ class Chat extends EventTarget {
                 .map(llm => llm.name)
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     
-        const setModelOptions = (async () => {
-            return;
+        const setModelOptions = async () => {
             // const llmConfigurations = await db.collections.llm_configuration.find().exec();
             // await this.setLLMConfigurationsAsNeeded(llmConfigurations);
     
@@ -391,7 +390,7 @@ class Chat extends EventTarget {
                     await persona.incrementalPatch({ modelOptions: llmNames, modifiedAt: new Date().getTime() });
                 }
             }
-        }).bind(this);
+        };
     
         db.collections.llm_configuration.$.subscribe(setModelOptions);
         db.collections.persona.$.subscribe(setModelOptions);

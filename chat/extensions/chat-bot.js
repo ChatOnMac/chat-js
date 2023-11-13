@@ -551,26 +551,25 @@ class Chat extends EventTarget {
             messageHistory.shift();
         }
 
+        const url = llm.apiURL.length > 0 ? llm.apiURL : "code://code/load/chat/api/v1/chat/completions";
+        var params = {
+            model: llm.name,
+            messages: chat,
+        };
+        if (llm.modelInference !== "llama") {
+            params.temperature = botPersona.modelTemperature;
+        }
         try {
-            const resp = await fetch(
-                "https:///api.openai.com/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        // "X-Chat-Trace-Event": documentData.id,
-                        //"HTTP-Referer": `${YOUR_SITE_URL}`,
-                    },
-                    body: JSON.stringify({
-                        model: llm.name,
-                        temperature: botPersona.modelTemperature,
-                        messages: chat,
-                    }),
-                }
-            );
-
+            const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // "X-Chat-Trace-Event": documentData.id,
+                    //"HTTP-Referer": `${YOUR_SITE_URL}`,
+                },
+                body: JSON.stringify(params),
+            });
             const data = await resp.json();
-
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
                     return await this.retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });

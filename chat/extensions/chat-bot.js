@@ -316,7 +316,7 @@ class Chat extends EventTarget {
 
     async personaLLM (persona) {
         const db = this.db;
-        return await db.collections.llm_configuration.findOne({ selector:{ usedByPersona: persona.id } }).exec();
+        return await db.collections.llm_configuration.findOne({ selector: { usedByPersona: persona.id } }).exec();
     }
 
     async setLLMConfigurationsAsNeeded (configurations) {
@@ -382,12 +382,16 @@ class Chat extends EventTarget {
     async wireLLMConfigurations() {
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
-    
-        const getModelOptions = async () =>
-            (await db.collections.llm_configuration.find().exec())
-                .map(llm => llm.name)
-                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    
+
+        const getModelOptions = async () => {
+            const uniqueModelNamesSet = new Set(
+                (await db.collections.llm_configuration.find().exec())
+                    .map(llm => llm.name)
+            );
+            const uniqueModelNamesArray = Array.from(uniqueModelNamesSet);
+            return uniqueModelNamesArray.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        };
+
         const setModelOptions = async () => {
             // const llmConfigurations = await db.collections.llm_configuration.find().exec();
             // await this.setLLMConfigurationsAsNeeded(llmConfigurations);

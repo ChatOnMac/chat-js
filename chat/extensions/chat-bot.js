@@ -328,7 +328,17 @@ class Chat extends EventTarget {
             const existing = existingLLMs.find(e => e.name === llm.name && !e.isDeleted);
             const params = { isDeleted: false, ...llm };
             if (existing) {
-                await existing.incrementalPatch({ modifiedAt: new Date().getTime(), ...params });
+                const updateObject = Object.keys(params).reduce((acc, key) => {
+                    if (params[key] !== existing[key]) {
+                        acc[key] = params[key];
+                    }
+                    return acc;
+                }, {});
+            
+                if (Object.keys(updateObject).length > 0) {
+                    updateObject.modifiedAt = new Date().getTime();
+                    await existing.incrementalPatch(updateObject);
+                }
                 updatedLLMs.push(existing);
             } else {
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
@@ -411,14 +421,18 @@ class Chat extends EventTarget {
             if (!botPersona.online) {
                 // Refresh instance (somehow stale otherwise).
                 let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
-                await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
+                if (!bot.online) {
+                    await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
+                }
             }
             // TODO: unsubscribe too is necessary with rxdb
             botPersona.online$.subscribe(async online => {
                 if (!online) {
                     // Refresh instance (somehow stale otherwise).
                     let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
-                    await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
+                    if (!bot.online) {
+                        await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
+                    }
                 }
             });
         }
@@ -627,10 +641,12 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
     existingBots = [...existingBots].filter(persona => persona.name === nextName).sort((a, b) => b.createdAt - a.createdAt);
     if (existingBots.length > 0) {
         const existingBot = existingBots[0];
-        existingBot.incrementalPatch({
-            online: true,
-            modifiedAt: new Date().getTime(),
-        });
+        if (!existingBot.online) {
+            existingBot.incrementalPatch({
+                online: true,
+                modifiedAt: new Date().getTime(),
+            });
+        }
         return existingBot;
     }
 

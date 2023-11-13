@@ -379,8 +379,8 @@ class Chat extends EventTarget {
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     
         const setModelOptions = (async () => {
-            const llmConfigurations = await db.collections.llm_configuration.find().exec();
-            await this.setLLMConfigurationsAsNeeded(llmConfigurations);
+            // const llmConfigurations = await db.collections.llm_configuration.find().exec();
+            // await this.setLLMConfigurationsAsNeeded(llmConfigurations);
     
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
@@ -646,7 +646,6 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 
 chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
-return;
 
     await window.chat.setLLMConfigurationsAsNeeded([
         {

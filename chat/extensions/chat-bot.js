@@ -379,6 +379,7 @@ class Chat extends EventTarget {
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     
         const setModelOptions = (async () => {
+            return;
             // const llmConfigurations = await db.collections.llm_configuration.find().exec();
             // await this.setLLMConfigurationsAsNeeded(llmConfigurations);
     

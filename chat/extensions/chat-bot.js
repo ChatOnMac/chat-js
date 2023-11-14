@@ -329,12 +329,16 @@ class Chat extends EventTarget {
             const params = { isDeleted: false, ...llm };
             if (existing) {
                 const updateObject = Object.keys(params).reduce((acc, key) => {
+                    console.log("UPDATING...")
+                    console.log(params[key])
+                    console.log(existing[key])
                     if (params[key] !== existing[key]) {
                         acc[key] = params[key];
                     }
                     return acc;
                 }, {});
-            
+                console.log(updateObject)
+                console.log(params)
                 if (Object.keys(updateObject).length > 0) {
                     updateObject.modifiedAt = new Date().getTime();
                     await existing.incrementalPatch(updateObject);

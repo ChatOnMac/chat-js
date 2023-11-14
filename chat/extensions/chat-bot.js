@@ -325,28 +325,39 @@ class Chat extends EventTarget {
         const updatedLLMs = [];
 
         for (const llm of configurations) {
-            const existing = existingLLMs.find(e => e.name === llm.name);
             const params = { ...llm };
-            if (existing) {
-                const updateObject = Object.keys(params).reduce((acc, key) => {
-                    console.log("UPDATING...")
-                    console.log(params[key])
-                    console.log(existing[key])
-                    if (params[key] !== existing[key]) {
-                        acc[key] = params[key];
+            const matches = await db.collections.llm_configuration.find({
+                selector: { name: llm.name },
+                sort: [{ createdAt: "desc" }],
+            }).exec();
+            if (matches.length > 0) {
+                var foundUnused = false;
+                for (let existing of matches) {
+                    if (existing.usedByPersona === null) {
+                        if (foundUnused) {
+                            continue;
+                        }
+                        // Only one unused LLM config per name.
+                        const dupes = await db.collections.llm_configuration.find({
+                            selector: { name: llm.name, usedByPersona: null, id: { $not: existing.id } },
+                        });
+                        dupes.forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
+                        foundUnused = true;
                     }
-                    return acc;
-                }, {});
-                console.log(updateObject)
-                console.log(params)
-                if (Object.keys(updateObject).length > 0) {
-                    updateObject.modifiedAt = new Date().getTime();
-                    await existing.incrementalPatch(updateObject);
+
+                    const updateObject = Object.keys(params).reduce((acc, key) => {
+                        if (params[key] !== existing[key]) {
+                            acc[key] = params[key];
+                        }
+                        return acc;
+                    }, {});
+                    if (Object.keys(updateObject).length > 0) {
+                        updateObject.modifiedAt = new Date().getTime();
+                        await existing.incrementalPatch(updateObject);
+                    }
+                    updatedLLMs.push(existing);
                 }
-                updatedLLMs.push(existing);
             } else {
-                    console.log("CREATING!!!!!!...")
-                    console.log(params)
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
                 const newLLM = {
                     id: crypto.randomUUID().toUpperCase(),

@@ -398,6 +398,10 @@ class Chat extends EventTarget {
         this.dispatchUnusedPersonasEvent();
     }
 
+    arrayEquals(array1, array2) {
+        return array1.length === array2.length && array1.every((value, index) => value === array2[index]);
+    }
+
     async wireLLMConfigurations() {
         const db = this.db;
         if (typeof db.collections.llm_configuration === 'undefined') { return }
@@ -411,19 +415,17 @@ class Chat extends EventTarget {
             return uniqueModelNamesArray.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         };
 
-        const setModelOptions = async () => {
+        const setModelOptions = (async () => {
             // const llmConfigurations = await db.collections.llm_configuration.find().exec();
             // await this.setLLMConfigurationsAsNeeded(llmConfigurations);
-    
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
-    
             for (const persona of allPersonas) {
-                if (!arrayEquals(persona.modelOptions, llmNames)) {
+                if (!this.arrayEquals(persona.modelOptions, llmNames)) {
                     await persona.incrementalPatch({ modelOptions: llmNames, modifiedAt: new Date().getTime() });
                 }
             }
-        };
+        }).bind(this);
     
         db.collections.llm_configuration.$.subscribe(setModelOptions);
         db.collections.persona.$.subscribe(setModelOptions);

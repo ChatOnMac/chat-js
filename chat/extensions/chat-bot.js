@@ -325,8 +325,8 @@ class Chat extends EventTarget {
         const updatedLLMs = [];
 
         for (const llm of configurations) {
-            const existing = existingLLMs.find(e => e.name === llm.name && !e.isDeleted);
-            const params = { isDeleted: false, ...llm };
+            const existing = existingLLMs.find(e => e.name === llm.name);
+            const params = { ...llm };
             if (existing) {
                 const updateObject = Object.keys(params).reduce((acc, key) => {
                     console.log("UPDATING...")
@@ -764,7 +764,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         {
             name: "mamba-gpt-3B-v4.Q5_1",
             organization: "CobraMamba",
-            displayName: "Mamba GPT 3B v4",
+            displayName: "Mamba GPT 3B",
             modelDownloadURL: "https://huggingface.co/Aryanne/Mamba-gpt-3B-v4-ggml-and-gguf/resolve/main/q5_1-gguf-mamba-gpt-3B_v4.gguf",
             memoryRequirement: 2_600_000,
             temperature: 0.8,

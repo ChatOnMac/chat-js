@@ -345,6 +345,8 @@ class Chat extends EventTarget {
                 }
                 updatedLLMs.push(existing);
             } else {
+                    console.log("CREATING!!!!!!...")
+                    console.log(params)
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
                 const newLLM = {
                     id: crypto.randomUUID().toUpperCase(),

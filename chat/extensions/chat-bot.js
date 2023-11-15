@@ -36,7 +36,7 @@ import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
 import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
 import llamaTokenizer from "jsdelivr.gh:belladoreai/llama-tokenizer-js@b88929eb8c462c/llama-tokenizer.js";
 
-// addRxPlugin(RxDBDevModePlugin);
+addRxPlugin(RxDBDevModePlugin);
 
 /**
  * The conflict handler gets 3 input properties:

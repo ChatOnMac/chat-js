@@ -423,7 +423,7 @@ class Chat extends EventTarget {
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
             for (const persona of allPersonas) {
-                if (!this.arrayEquals(persona.modelOptions, llmNames)) {
+                if (!this.arrayEquals(persona.modelOptions || [], llmNames)) {
                     await persona.incrementalPatch({ modelOptions: llmNames, modifiedAt: new Date().getTime() });
                 }
             }

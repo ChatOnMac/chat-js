@@ -341,7 +341,7 @@ class Chat extends EventTarget {
                         const dupes = await db.collections.llm_configuration.find({
                             selector: { name: llm.name, usedByPersona: null, id: { $not: existing.id } },
                         }).exec();
-                        dupes.forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
+                        dupes.forEach(llm => llm.remove());
                         foundUnused = true;
                     }
                     const updateObject = Object.keys(params).reduce((acc, key) => {
@@ -370,7 +370,7 @@ class Chat extends EventTarget {
 
         existingLLMs
             .filter(llm => !updatedLLMs.includes(llm))
-            .forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
+            .forEach(llm => llm.remove());
     }
 
     async dispatchUnusedPersonasEvent(rooms) {

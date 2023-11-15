@@ -340,7 +340,7 @@ class Chat extends EventTarget {
                         // Only one unused LLM config per name.
                         const dupes = await db.collections.llm_configuration.find({
                             selector: { name: llm.name, usedByPersona: null, id: { $not: existing.id } },
-                        });
+                        }).exec();
                         dupes.forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
                         foundUnused = true;
                     }

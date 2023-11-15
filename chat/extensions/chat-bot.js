@@ -333,20 +333,17 @@ class Chat extends EventTarget {
             if (matches.length > 0) {
                 var foundUnused = false;
                 for (let existing of matches) {
-                    if (existing.usedByPersona === null) {
+                    if (!existing.usedByPersona) {
                         if (foundUnused) {
                             continue;
                         }
-                        console.log("FIRST UNUSED")
                         // Only one unused LLM config per name.
                         const dupes = await db.collections.llm_configuration.find({
                             selector: { name: llm.name, usedByPersona: null, id: { $not: existing.id } },
                         });
-                        console.log(dupes)
                         dupes.forEach(async llm => await llm.incrementalPatch({ isDeleted: true }));
                         foundUnused = true;
                     }
-
                     const updateObject = Object.keys(params).reduce((acc, key) => {
                         if (params[key] !== existing[key]) {
                             acc[key] = params[key];

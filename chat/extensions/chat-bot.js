@@ -332,6 +332,7 @@ class Chat extends EventTarget {
             }).exec();
             if (matches.length > 0) {
                 var foundUnused = false;
+                console.log("WILL UPDATE")
                 for (let existing of matches) {
                     if (!existing.usedByPersona) {
                         if (foundUnused) {
@@ -356,6 +357,8 @@ class Chat extends EventTarget {
                     }
                     updatedLLMs.push(existing);
                 }
+                console.log("DID UPDATE")
+                console.log(params)
             } else {
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
                 const newLLM = {
@@ -364,6 +367,8 @@ class Chat extends EventTarget {
                     modifiedAt: new Date().getTime(),
                     ...params,
                 };
+                console.log("WILL INSERT")
+                console.log(params)
                 await db.collections.llm_configuration.insert(newLLM);
             }
         }

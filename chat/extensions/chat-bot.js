@@ -534,7 +534,7 @@ class Chat extends EventTarget {
 
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         const db = this.db;
-        const llm = personaLLM(botPersona);
+        const llm = this.personaLLM(botPersona);
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {

@@ -314,12 +314,12 @@ class Chat extends EventTarget {
         return chat;
     }
 
-    async personaLLM (persona) {
+    async personaLLM(persona) {
         const db = this.db;
         return await db.collections.llm_configuration.findOne({ selector: { usedByPersona: persona.id } }).exec();
     }
 
-    async setLLMConfigurationsAsNeeded (configurations) {
+    async setLLMConfigurationsAsNeeded(configurations) {
         const db = this.db;
         const existingLLMs = await db.collections.llm_configuration.find().exec();
         const updatedLLMs = [];
@@ -529,8 +529,7 @@ class Chat extends EventTarget {
 
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         const db = this.db;
-        const llm = this.personaLLM(botPersona);
-        debugger;
+        const llm = await this.personaLLM(botPersona);
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {

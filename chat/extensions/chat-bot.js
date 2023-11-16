@@ -332,7 +332,6 @@ class Chat extends EventTarget {
             }).exec();
             if (matches.length > 0) {
                 var foundUnused = false;
-                console.log("WILL UPDATE")
                 for (let existing of matches) {
                     if (!existing.usedByPersona) {
                         if (foundUnused) {
@@ -357,8 +356,6 @@ class Chat extends EventTarget {
                     }
                     updatedLLMs.push(existing);
                 }
-                console.log("DID UPDATE")
-                console.log(params)
             } else {
                 const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
                 const newLLM = {
@@ -367,8 +364,6 @@ class Chat extends EventTarget {
                     modifiedAt: new Date().getTime(),
                     ...params,
                 };
-                console.log("WILL INSERT")
-                console.log(params)
                 await db.collections.llm_configuration.insert(newLLM);
             }
         }
@@ -535,6 +530,7 @@ class Chat extends EventTarget {
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         const db = this.db;
         const llm = this.personaLLM(botPersona);
+        debugger;
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {

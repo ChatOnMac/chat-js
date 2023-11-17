@@ -832,6 +832,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
                 createdAt,
                 modifiedAt: createdAt,
             });
+            console.log("ohh")
         } catch (error) {
             console.log(error);
         }

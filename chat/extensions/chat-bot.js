@@ -822,9 +822,9 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             const createdAt = new Date().getTime();
             
             console.log("uhh")
-            /*
+            
             await db.collections.event.insert({
-                id: crypto.randomUUID().toUpperCase(),
+                //id: crypto.randomUUID().toUpperCase(),
                 content,
                 type: "message",
                 room: room,
@@ -832,7 +832,6 @@ chat.addEventListener("finishedInitialSync", async (event) => {
                 createdAt,
                 modifiedAt: createdAt,
             });
-            */
         } catch (error) {
             console.log(error);
         }

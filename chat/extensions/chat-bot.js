@@ -824,10 +824,10 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             console.log("uhh")
             
             await db.collections.event.insert({
-                //id: crypto.randomUUID().toUpperCase(),
+                id: crypto.randomUUID().toUpperCase(),
                 content,
                 type: "message",
-                room: room,
+                room: room.id,
                 sender: botPersona.id,
                 createdAt,
                 modifiedAt: createdAt,

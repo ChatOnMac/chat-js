@@ -821,7 +821,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             const content = data.choices[0].message.content;
             const createdAt = new Date().getTime();
 
-            db.collections.event.insert({
+            await db.collections.event.insert({
                 id: crypto.randomUUID().toUpperCase(),
                 content,
                 type: "message",

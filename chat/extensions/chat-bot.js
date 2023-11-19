@@ -643,8 +643,7 @@ class Chat extends EventTarget {
                         botPersona,
                         room,
                         content,
-                        // messageHistoryLimit: Math.max(0, messageHistory.length - 1),
-                        messageHistoryLimit: 1,
+                        messageHistoryLimit: Math.max(0, messageHistory.length - 1),
                         idealMaxContextTokenRatio });
                 }
                 throw new Error(data.error.message);
@@ -856,6 +855,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             const data = await window.chat.retryableOpenAIChatCompletion({
                 eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
                 idealMaxContextTokenRatio: 0.666,
+                messageHistoryLimit: 1,
             });
 
             const content = data.choices[0].message.content;

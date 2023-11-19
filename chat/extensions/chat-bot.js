@@ -781,7 +781,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelDownloadURL: "https://huggingface.co/Aryanne/Orca-Mini-3B-gguf/resolve/main/q5_0-orca-mini-3b.gguf",
             memoryRequirement: 2_400_000,
             // context: 4096,
-            context: 1024,
+            context: 2048,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
@@ -799,7 +799,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "Orca Mini 7B",
             modelDownloadURL: "https://huggingface.co/TheBloke/orca_mini_v3_7B-GGUF/resolve/main/orca_mini_v3_7b.Q5_K_M.gguf",
             memoryRequirement: 4_780_000,
-            context: 4096,
+            context: 2048,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
@@ -818,7 +818,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelDownloadURL: "https://huggingface.co/Aryanne/Mamba-gpt-3B-v4-ggml-and-gguf/resolve/main/q5_1-gguf-mamba-gpt-3B_v4.gguf",
             memoryRequirement: 2_600_000,
             temperature: 0.8,
-            context: 4096,
+            context: 2048,
             repeatPenalty: 1.1,
             topP: 0.89999997615814209,
             topK: 80,
@@ -855,7 +855,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         try {
             const data = await window.chat.retryableOpenAIChatCompletion({
                 eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
-                idealMaxContextTokenRatio: 0.5, // 0.666
+                idealMaxContextTokenRatio: 0.666,
             });
 
             const content = data.choices[0].message.content;

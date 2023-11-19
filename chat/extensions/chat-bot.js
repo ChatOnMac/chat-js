@@ -806,7 +806,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topP: 0.94999998807907104,
             nBatch: 512,
             topK: 40,
-            defaultPriority: 104,
+            defaultPriority: 105,
         },
         {
             name: "orca-mini-3b.Q5_0",

@@ -565,15 +565,24 @@ class Chat extends EventTarget {
                 gptTokenizer = null;
         }
         var chat;
-        while (true) {
+        let includedHistory = [];
+        const candidates = messageHistory.reverse();
+        const idealTokenLimit = tokenLimit * (1 - idealMaxContextTokenRatio);
+        for (const message of candidates) {
+            includedHistory.unshift(message);
             chat = [
                 { role: "system", content: systemPrompt },
-                ...messageHistory,
+                ...includedHistory,
                 { role: "user", content: content },
             ];
-            if (messageHistory.length === 0) {
-                break;
-            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit * (1 - idealMaxContextTokenRatio))) {
+
+            // Optimization heuristic
+            if (JSON.stringify(chat).length < idealTokenLimit) {
+                continue;
+            }
+
+            if (gptTokenizer && !gptTokenizer.isWithinTokenLimit(chat, idealTokenLimit)) {
+                includedHistory.shift();
                 break;
             } else if (llm.modelInference === "llama") {
                 // Check token length
@@ -611,12 +620,17 @@ class Chat extends EventTarget {
                     resultString += llm.promptFormat.replace("{{prompt}}", historyItem[0]) + historyItem[1];
                 }
                 const tokenLength = llamaTokenizer.encode(resultString).length;
-                if (tokenLength <= tokenLimit && (tokenLength / tokenLimit) <= idealMaxContextTokenRatio) {
+                if (tokenLength > idealTokenLimit) {
+                    includedHistory.shift();
                     break;
                 }
             }
-            messageHistory.shift();
         }
+        chat = [
+            { role: "system", content: systemPrompt },
+            ...includedHistory,
+            { role: "user", content: content },
+        ];
 
         const url = llm.apiURL.length > 0 ? llm.apiURL : "code://code/load/chat/api/v1/chat/completions";
         var params = {

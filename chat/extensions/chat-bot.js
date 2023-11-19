@@ -551,8 +551,7 @@ class Chat extends EventTarget {
         }
         systemPrompt = systemPrompt.trim();
         
-        // var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
-        var messageHistory = [];
+        var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
 
         const tokenLimit = llm.context;
         let gptTokenizer;
@@ -640,7 +639,12 @@ class Chat extends EventTarget {
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
                     return await this.retryableOpenAIChatCompletion({ 
-                        eventTriggerID, botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1),
+                        eventTriggerID, 
+                        botPersona,
+                        room,
+                        content,
+                        // messageHistoryLimit: Math.max(0, messageHistory.length - 1),
+                        messageHistoryLimit: 1,
                         idealMaxContextTokenRatio });
                 }
                 throw new Error(data.error.message);

@@ -576,6 +576,7 @@ class Chat extends EventTarget {
                 break;
             } else if (llm.modelInference === "llama") {
                 // Check token length
+                // Note that this logic must be kept in sync with the backend
                 let resultString = llm.systemFormat.replace("{{prompt}}", systemPrompt);
                 let history = [];
                 let user = [];
@@ -774,7 +775,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "Orca Mini 3B",
             modelDownloadURL: "https://huggingface.co/Aryanne/Orca-Mini-3B-gguf/resolve/main/q5_0-orca-mini-3b.gguf",
             memoryRequirement: 2_400_000,
-            context: 4096,
+            // context: 4096,
+            context: 1024,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",

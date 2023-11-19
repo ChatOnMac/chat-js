@@ -580,7 +580,8 @@ class Chat extends EventTarget {
                         }
                     }
                 }
-                if (llamaTokenizer.encode(resultString).length <= tokenLimit) {
+                const tokenLength = llamaTokenizer.encode(resultString).length;
+                if (tokenLength <= tokenLimit) {
                     break;
                 }
             }

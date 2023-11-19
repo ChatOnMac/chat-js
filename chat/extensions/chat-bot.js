@@ -513,13 +513,12 @@ class Chat extends EventTarget {
     async getMessageHistoryJSON(args) {
         const history = await this.getMessageHistory(args);
         const json = await Promise.all(
-            history.map(async ({ content, persona }) => {
+            history.map(async ({ content, sender }) => {
                 const foundPersona = await this.db.collections.persona
-                    .findOne(persona)
+                    .findOne(sender)
                     .exec();
                 return {
-                    role:
-                    foundPersona.personaType === "bot" ? "assistant" : "user",
+                    role: foundPersona.personaType === "bot" ? "assistant" : "user",
                     content,
                 };
             })
@@ -567,6 +566,7 @@ class Chat extends EventTarget {
             } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit)) {
                 break;
             } else if (llm.modelInference === "llama") {
+                // Check token length
                 let resultString = "";
                 for (let i = 0; i < chat.length; i++) {
                     const currentMessage = chat[i];
@@ -746,8 +746,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             context: 1024,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "### System:\n{{prompt}}\n\n",
-            promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
+            systemFormat: "### System:\n{{prompt}}",
+            promptFormat: "\n\n### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,
@@ -764,8 +764,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             context: 1024,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "### System:\n{{prompt}}\n\n",
-            promptFormat: "### User:\n{{prompt}}\n\n### Response:\n",
+            systemFormat: "### System:\n{{prompt}}",
+            promptFormat: "\n\n### User:\n{{prompt}}\n\n### Response:\n",
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,
@@ -787,8 +787,8 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelInference: "llama",
             nBatch: 512,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Mamba GPT architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "<|prompt|>### System:\n{{prompt}}\n\n",
-            promptFormat: "### User: {{prompt}}</s><|answer|>",
+            systemFormat: "<|prompt|>### System:\n{{prompt}}",
+            promptFormat: "\n\n### User: {{prompt}}</s><|answer|>",
             defaultPriority: 101,
         },
     ]);

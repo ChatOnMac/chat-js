@@ -529,6 +529,15 @@ class Chat extends EventTarget {
     async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
         const db = this.db;
         const llm = await this.personaLLM(botPersona);
+        if (!llm) {
+            var eventDoc = await this.db.collections.event.findOne(eventTriggerID).exec();
+            await eventDoc.incrementalModify((docData) => {
+                docData.failureMessages = "No AI model selected, or not finished initializing yet."
+                return docData;
+            });
+            throw error;
+        }
+        
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {

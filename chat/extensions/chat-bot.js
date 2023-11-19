@@ -553,7 +553,6 @@ class Chat extends EventTarget {
         systemPrompt = systemPrompt.trim();
         
         var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
-    console.log(new Date().getTime())
 
         const tokenLimit = llm.context;
         let gptTokenizer;
@@ -633,7 +632,6 @@ class Chat extends EventTarget {
             { role: "user", content: content },
         ];
 
-    console.log(new Date().getTime())
         const url = llm.apiURL.length > 0 ? llm.apiURL : "code://code/load/chat/api/v1/chat/completions";
         var params = {
             model: llm.name,

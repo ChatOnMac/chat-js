@@ -855,8 +855,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         try {
             const data = await window.chat.retryableOpenAIChatCompletion({
                 eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
-                idealMaxContextTokenRatio: 0.666,
-                messageHistoryLimit: 4,
+                idealMaxContextTokenRatio: 0.5, // 0.666
             });
 
             const content = data.choices[0].message.content;

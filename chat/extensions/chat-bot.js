@@ -553,6 +553,7 @@ class Chat extends EventTarget {
         systemPrompt = systemPrompt.trim();
         
         var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
+    console.log(new Date().getTime())
 
         const tokenLimit = llm.context;
         let gptTokenizer;
@@ -577,7 +578,7 @@ class Chat extends EventTarget {
             ];
 
             // Optimization heuristic
-            if (JSON.stringify(chat).length < idealTokenLimit) {
+            if (JSON.stringify(chat).length * 0.9 < idealTokenLimit) {
                 continue;
             }
 
@@ -632,6 +633,7 @@ class Chat extends EventTarget {
             { role: "user", content: content },
         ];
 
+    console.log(new Date().getTime())
         const url = llm.apiURL.length > 0 ? llm.apiURL : "code://code/load/chat/api/v1/chat/completions";
         var params = {
             model: llm.name,
@@ -800,6 +802,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
             promptFormat: "\n\n### User:\n{{prompt}}\n\n### Response:\n",
+            stopWords: ["### User:"],
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,
@@ -818,6 +821,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
             promptFormat: "\n\n### User:\n{{prompt}}\n\n### Response:\n",
+            stopWords: ["### User:"],
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,
@@ -841,6 +845,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Mamba GPT architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "<|prompt|>### System:\n{{prompt}}",
             promptFormat: "\n\n### User: {{prompt}}</s><|answer|>",
+            stopWords: ["### User:"],
             defaultPriority: 101,
         },
     ]);

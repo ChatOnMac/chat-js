@@ -237,22 +237,22 @@ class Chat extends EventTarget {
     onlineAt = new Date();
     state = { replications: {}, canonicalDocumentChanges: {} };
 
-    tokenLimits = {
-        "gpt-4": 8192,
-        "gpt-4-0314": 8192,
-        "gpt-4-0613": 8192,
-        "gpt-4-32k": 32768,
-        "gpt-4-32k-0613": 32768,
-        "gpt-4-32k-0314": 32768,
-        "gpt-3.5-turbo": 4097,
-        "gpt-3.5-turbo-instruct": 4097,
-        "gpt-3.5-turbo-0613": 4097,
-        "gpt-3.5-turbo-0301": 4097,
-        "gpt-3.5-turbo-1106": 4097,
-        "gpt-3.5-turbo-16k": 16385,
-        "gpt-3.5-turbo-16k-0613": 16385,
-        "gpt-4-1106-preview": 4097, // 128k soon; should also be user-configurable then
-    };
+    // tokenLimits = {
+    //     "gpt-4": 8192,
+    //     "gpt-4-0314": 8192,
+    //     "gpt-4-0613": 8192,
+    //     "gpt-4-32k": 32768,
+    //     "gpt-4-32k-0613": 32768,
+    //     "gpt-4-32k-0314": 32768,
+    //     "gpt-3.5-turbo": 4097,
+    //     "gpt-3.5-turbo-instruct": 4097,
+    //     "gpt-3.5-turbo-0613": 4097,
+    //     "gpt-3.5-turbo-0301": 4097,
+    //     "gpt-3.5-turbo-1106": 4097,
+    //     "gpt-3.5-turbo-16k": 16385,
+    //     "gpt-3.5-turbo-16k-0613": 16385,
+    //     "gpt-4-1106-preview": 4097, // 128k soon; should also be user-configurable then
+    // };
 
     constructor ({ db }) {
         super();
@@ -526,7 +526,7 @@ class Chat extends EventTarget {
         return json;
     }
 
-    async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit }) {
+    async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit, idealMaxContextTokenRatio }) {
         const db = this.db;
         const llm = await this.personaLLM(botPersona);
         if (!llm) {
@@ -553,7 +553,7 @@ class Chat extends EventTarget {
         
         var messageHistory = await this.getMessageHistoryJSON({ room: room, limit: messageHistoryLimit ?? 1000 });
 
-        const tokenLimit = this.tokenLimits[llm.name] ?? 4000;
+        const tokenLimit = llm.context;
         let gptTokenizer;
         switch (llm.name) {
             case "gpt-3.5-turbo", "gpt-3.5-turbo-1106":
@@ -572,25 +572,44 @@ class Chat extends EventTarget {
             ];
             if (messageHistory.length === 0) {
                 break;
-            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit)) {
+            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit) && (gptTokenizer.encodeChat(chat).length / tokenLimit) <= idealMaxContextTokenRatio) {
                 break;
             } else if (llm.modelInference === "llama") {
                 // Check token length
-                let resultString = "";
-                for (let i = 0; i < chat.length; i++) {
-                    const currentMessage = chat[i];
-                    const isUserMessage = currentMessage.role === "user";
-                    if (isUserMessage) {
-                        const formattedUserPrompt = llm.promptFormat.replace("{{prompt}}", currentMessage.content);
-                        resultString += formattedUserPrompt;
-
-                        if (i < chat.length - 1 && chat[i + 1].role !== "user") {
-                            resultString += chat[i + 1].content;
+                let resultString = llm.systemFormat.replace("{{prompt}}", systemPrompt);
+                let history = [];
+                let user = [];
+                let bot = [];
+                let scanningUser = true;
+                for (const message of chat) {
+                    if (scanningUser) {
+                        if (message.role === "user") {
+                            user.push(message.content);
+                        } else if (message.role === "assistant") {
+                            scanningUser = false;
+                            bot.push(message.content);
+                        }
+                    } else {
+                        if (message.role === "user") {
+                            history.push([user.join("\n"), bot.join("\n")]);
+                            user.length = 0;
+                            bot.length = 0;
+                
+                            scanningUser = true;
+                            user.push(message.content);
+                        } else if (message.role === "assistant") {
+                            bot.push(message.content);
                         }
                     }
                 }
+                if (user.length > 0 || bot.length > 0) {
+                    history.push([user.join("\n"), bot.join("\n")]);
+                }
+                for (const historyItem of history) {
+                    resultString += llm.promptFormat.replace("{{prompt}}", historyItem[0]) + historyItem[1];
+                }
                 const tokenLength = llamaTokenizer.encode(resultString).length;
-                if (tokenLength <= tokenLimit) {
+                if (tokenLength <= tokenLimit && (tokenLength / tokenLimit) <= idealMaxContextTokenRatio) {
                     break;
                 }
             }
@@ -618,7 +637,9 @@ class Chat extends EventTarget {
             const data = await resp.json();
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
-                    return await this.retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1) });
+                    return await this.retryableOpenAIChatCompletion({ 
+                        eventTriggerID, botPersona, room, content, messageHistoryLimit: Math.max(0, messageHistory.length - 1),
+                        idealMaxContextTokenRatio });
                 }
                 throw new Error(data.error.message);
             }
@@ -712,7 +733,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "OpenAI GPT 4 Turbo",
             apiURL: "https:///api.openai.com/v1/chat/completions",
             modelInference: "openai",
-            context: 4096,
+            context: 8192,
             systemPromptTemplate: "You are {{name}}, a large language model trained by OpenAI, based on the GPT 4 Turbo architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             defaultPriority: 2,
         },
@@ -753,7 +774,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "Orca Mini 3B",
             modelDownloadURL: "https://huggingface.co/Aryanne/Orca-Mini-3B-gguf/resolve/main/q5_0-orca-mini-3b.gguf",
             memoryRequirement: 2_400_000,
-            context: 1024,
+            context: 4096,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
@@ -771,7 +792,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "Orca Mini 7B",
             modelDownloadURL: "https://huggingface.co/TheBloke/orca_mini_v3_7B-GGUF/resolve/main/orca_mini_v3_7b.Q5_K_M.gguf",
             memoryRequirement: 4_780_000,
-            context: 1024,
+            context: 4096,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Orca Mini architecture. Knowledge cutoff: 2022-09 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "### System:\n{{prompt}}",
@@ -790,7 +811,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             modelDownloadURL: "https://huggingface.co/Aryanne/Mamba-gpt-3B-v4-ggml-and-gguf/resolve/main/q5_1-gguf-mamba-gpt-3B_v4.gguf",
             memoryRequirement: 2_600_000,
             temperature: 0.8,
-            context: 1024,
+            context: 4096,
             repeatPenalty: 1.1,
             topP: 0.89999997615814209,
             topK: 80,
@@ -825,8 +846,10 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         }
         
         try {
-            const data = await window.chat.retryableOpenAIChatCompletion(
-                { eventTriggerID: documentData.id, botPersona, room, content: documentData.content });
+            const data = await window.chat.retryableOpenAIChatCompletion({
+                eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
+                idealMaxContextTokenRatio: 0.666,
+            });
 
             const content = data.choices[0].message.content;
             const createdAt = new Date().getTime();

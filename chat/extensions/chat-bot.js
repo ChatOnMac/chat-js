@@ -573,7 +573,7 @@ class Chat extends EventTarget {
             ];
             if (messageHistory.length === 0) {
                 break;
-            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit) && (gptTokenizer.encodeChat(chat).length / tokenLimit) <= idealMaxContextTokenRatio) {
+            } else if (gptTokenizer && gptTokenizer.isWithinTokenLimit(chat, tokenLimit * (1 - idealMaxContextTokenRatio))) {
                 break;
             } else if (llm.modelInference === "llama") {
                 // Check token length

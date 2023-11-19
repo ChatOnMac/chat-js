@@ -498,16 +498,17 @@ class Chat extends EventTarget {
         return bots;
     }
 
+    /// Contextual history, without the latest user prompt.
     async getMessageHistory({ room, limit }) {
         const db = this.db;
         const messages = await db.collections.event
             .find({
                 selector: { room: room.id },
-                limit: limit,
+                limit: limit + 1,
                 sort: [{ createdAt: "desc" }],
             })
             .exec();
-        return messages.reverse();
+        return messages.slice(1).reverse();
     }
 
     async getMessageHistoryJSON(args) {

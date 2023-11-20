@@ -290,6 +290,8 @@ class Chat extends EventTarget {
     async onFinishedSyncingDocsFromCanonical() {
         await this.installNativeHostBehaviors()
 
+        console.log("onFinishedSyncingDocsFromCanonical ......");
+        console.log(new Date().getTime())
         this.dispatchEvent(new CustomEvent("finishedInitialSync", { detail: { db: this.db, replications: this.state.replications } }));
         await this.wireLLMConfigurations();
         await this.keepOwnPersonasOnline();

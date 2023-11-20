@@ -297,6 +297,8 @@ class Chat extends EventTarget {
         // await this.offerUnusedPersonas();
         // this.dispatchEvent(new CustomEvent("offerUnusedPersonas", { detail: { } }));
         await this.wireUnusedPersonas();
+
+        this.dispatchEvent(new CustomEvent("refreshLLMConfigurations", { detail: { db: this.db, replications: this.state.replications } }));
     }
 
     static async init() {
@@ -424,7 +426,13 @@ class Chat extends EventTarget {
             }
         }).bind(this);
     
-        db.collections.llm_configuration.$.subscribe(setModelOptions);
+        db.collections.llm_configuration.$.subscribe(((changeEvent) => {
+            if (changeEvent.previousDocumentData?.usedByPersona != changeEvent.documentData.usedByPersona) {
+                this.dispatchEvent(new CustomEvent("refreshLLMConfigurations", { detail: { db: this.db, replications: this.state.replications } }));
+            }
+            setModelOptions();
+        }).bind(this));
+
         db.collections.persona.$.subscribe(setModelOptions);
         setModelOptions();
     }
@@ -736,6 +744,54 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
 chat.addEventListener("finishedInitialSync", async (event) => {
     const db = event.detail.db;
 
+    db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
+        if (documentData.createdAt < window.chat.onlineAt.getTime()) {
+            return;
+        }
+
+        const personaCollection = db.collections.persona;
+        const persona = await personaCollection
+            .findOne(documentData.sender)
+            .exec();
+        if (persona?.personaType !== "user") {
+            return;
+        }
+
+        const room = await db.collections.room.findOne(documentData.room).exec();
+        const botPersonas = await chat.getBotPersonas(room);
+        const botPersona = botPersonas.length ? botPersonas[0] : null;
+        if (!botPersona) {
+            console.log("No matching bot to emit from.")
+            return;
+        }
+        
+        try {
+            const data = await window.chat.retryableOpenAIChatCompletion({
+                eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
+                idealMaxContextTokenRatio: 0.666,
+            });
+
+            const content = data.choices[0].message.content;
+            const createdAt = new Date().getTime();
+            
+            await db.collections.event.insert({
+                id: crypto.randomUUID().toUpperCase(),
+                content,
+                type: "message",
+                room: room.id,
+                sender: botPersona.id,
+                createdAt,
+                modifiedAt: createdAt,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
+});
+
+chat.addEventListener("refreshLLMConfigurations", async (event) => {
+    const db = event.detail.db;
+
     await window.chat.setLLMConfigurationsAsNeeded([
         {
             name: "gpt-3.5-turbo-1106",
@@ -788,26 +844,26 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         //     nBatch: 512,
         //     modelInference: "llama",
         // },
-        {
-            name: "akins-3b.Q5_K_M",
-            organization: "Bohan Du",
-            displayName: "Akins 3B",
-            modelDownloadURL: "https://huggingface.co/TheBloke/Akins-3B-GGUF/resolve/main/akins-3b.Q5_K_M.gguf",
-            memoryRequirement: 1_990_000,
-            // context: 4096,
-            context: 2048,
-            repeatPenalty: 1.1,
-            systemPromptTemplate: "You are {{name}}, a large language model based on the StableML Akins architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "SYSTEM: {{prompt}}",
-            promptFormat: "\nUSER: {{prompt}}\nASSISTANT: ",
-            stopWords: ["\nUSER:"],
-            temp: 0.89999997615814209,
-            modelInference: "llama",
-            topP: 0.94999998807907104,
-            nBatch: 512,
-            topK: 40,
-            defaultPriority: 105,
-        },
+        // {
+        //     name: "akins-3b.Q5_K_M",
+        //     organization: "Bohan Du",
+        //     displayName: "Akins 3B",
+        //     modelDownloadURL: "https://huggingface.co/TheBloke/Akins-3B-GGUF/resolve/main/akins-3b.Q5_K_M.gguf",
+        //     memoryRequirement: 1_990_000,
+        //     // context: 4096,
+        //     context: 1024,
+        //     repeatPenalty: 1.1,
+        //     systemPromptTemplate: "You are {{name}}, a large language model based on the StableML Akins architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+        //     systemFormat: "{{prompt}}",
+        //     promptFormat: "\nUSER: {{prompt}}\nASSISTANT: ",
+        //     stopWords: ["\nUSER:"],
+        //     temp: 0.89999997615814209,
+        //     modelInference: "llama",
+        //     topP: 0.94999998807907104,
+        //     nBatch: 512,
+        //     topK: 40,
+        //     defaultPriority: 105,
+        // },
         {
             name: "orca-mini-3b.Q5_0",
             organization: "Pankaj Mathur",
@@ -872,7 +928,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             displayName: "Nous Capybara 34B",
             modelDownloadURL: "https://huggingface.co/TheBloke/Nous-Capybara-34B-GGUF/resolve/main/nous-capybara-34b.Q4_K_M.gguf",
             memoryRequirement: 20_700_000,
-            context: 16384,
+            context: 16384, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "{{prompt}}\n\n",
@@ -885,25 +941,25 @@ chat.addEventListener("finishedInitialSync", async (event) => {
             topK: 40,
             defaultPriority: -1,
         },
-        {
-            name: "goliath-120b.Q2_K",
-            organization: "Alpin",
-            displayName: "Goliath 120B",
-            modelDownloadURL: "https://huggingface.co/TheBloke/goliath-120b-GGUF/resolve/main/goliath-120b.Q2_K.gguf",
-            memoryRequirement: 49_600_000,
-            context: 4096,
-            repeatPenalty: 1.1,
-            systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Goliath 120B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "{{prompt}}\n\n",
-            promptFormat: "\n\nUSER: {{prompt}}\nASSISTANT:",
-            stopWords: ["\nUSER:"],
-            temp: 0.89999997615814209,
-            modelInference: "llama",
-            topP: 0.94999998807907104,
-            nBatch: 512,
-            topK: 40,
-            defaultPriority: -1,
-        },
+        // {
+        //     name: "goliath-120b.Q2_K",
+        //     organization: "Alpin",
+        //     displayName: "Goliath 120B",
+        //     modelDownloadURL: "https://huggingface.co/TheBloke/goliath-120b-GGUF/resolve/main/goliath-120b.Q2_K.gguf",
+        //     memoryRequirement: 49_600_000,
+        //     context: 4096,
+        //     repeatPenalty: 1.1,
+        //     systemPromptTemplate: "You are {{name}}, a large language model based on the Llama2 Goliath 120B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+        //     systemFormat: "{{prompt}}\n\n",
+        //     promptFormat: "\n\nUSER: {{prompt}}\nASSISTANT:",
+        //     stopWords: ["\nUSER:"],
+        //     temp: 0.89999997615814209,
+        //     modelInference: "llama",
+        //     topP: 0.94999998807907104,
+        //     nBatch: 512,
+        //     topK: 40,
+        //     defaultPriority: -1,
+        // },
         // {
         //     name: "lzlv_70b_fp16_hf.Q4_K_M",
         //     organization: "A Guy",
@@ -943,48 +999,4 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         //     defaultPriority: 101,
         // },
     ]);
-
-    db.collections.event.insert$.subscribe(async ({ documentData, collectionName }) => {
-        if (documentData.createdAt < window.chat.onlineAt.getTime()) {
-            return;
-        }
-
-        const personaCollection = db.collections.persona;
-        const persona = await personaCollection
-            .findOne(documentData.sender)
-            .exec();
-        if (persona?.personaType !== "user") {
-            return;
-        }
-
-        const room = await db.collections.room.findOne(documentData.room).exec();
-        const botPersonas = await chat.getBotPersonas(room);
-        const botPersona = botPersonas.length ? botPersonas[0] : null;
-        if (!botPersona) {
-            console.log("No matching bot to emit from.")
-            return;
-        }
-        
-        try {
-            const data = await window.chat.retryableOpenAIChatCompletion({
-                eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
-                idealMaxContextTokenRatio: 0.666,
-            });
-
-            const content = data.choices[0].message.content;
-            const createdAt = new Date().getTime();
-            
-            await db.collections.event.insert({
-                id: crypto.randomUUID().toUpperCase(),
-                content,
-                type: "message",
-                room: room.id,
-                sender: botPersona.id,
-                createdAt,
-                modifiedAt: createdAt,
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    });
 });

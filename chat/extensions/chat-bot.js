@@ -327,16 +327,16 @@ class Chat extends EventTarget {
         const updatedLLMs = [];
 
         for (const llm of configurations) {
-            const params = { ...llm };
+            let params = { ...llm };
             const matches = await db.collections.llm_configuration.find({
                 selector: { name: llm.name },
                 sort: [{ createdAt: "desc" }],
             }).exec();
+            var needsNewUnused = true;
             if (matches.length > 0) {
-                var foundUnused = false;
                 for (let existing of matches) {
                     if (!existing.usedByPersona) {
-                        if (foundUnused) {
+                        if (!needsNewUnused) {
                             continue;
                         }
                         // Only one unused LLM config per name.
@@ -344,7 +344,7 @@ class Chat extends EventTarget {
                             selector: { name: llm.name, usedByPersona: null, id: { $not: existing.id } },
                         }).exec();
                         dupes.forEach(llm => llm.remove());
-                        foundUnused = true;
+                        needsNewUnused = false;
                     }
                     const updateObject = Object.keys(params).reduce((acc, key) => {
                         if (params[key] !== existing[key]) {
@@ -358,8 +358,8 @@ class Chat extends EventTarget {
                     }
                     updatedLLMs.push(existing);
                 }
-            } else {
-                const llmNames = existingLLMs.map(llm => llm.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            }
+            if (needsNewUnused) {
                 const newLLM = {
                     id: crypto.randomUUID().toUpperCase(),
                     createdAt: new Date().getTime(),
@@ -415,8 +415,6 @@ class Chat extends EventTarget {
         };
 
         const setModelOptions = (async () => {
-            // const llmConfigurations = await db.collections.llm_configuration.find().exec();
-            // await this.setLLMConfigurationsAsNeeded(llmConfigurations);
             const llmNames = await getModelOptions();
             const allPersonas = await db.collections.persona.find().exec();
             for (const persona of allPersonas) {

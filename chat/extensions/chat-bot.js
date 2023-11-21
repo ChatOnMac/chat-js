@@ -951,7 +951,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "{{prompt}}\n\n",
             promptFormat: "\n\nUSER: {{prompt}}\nASSISTANT:",
-            stopWords: ["\nUSER:", "</s>"],
+            stopWords: ["\nUSER:", "</s>", "\</s>"],
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,

@@ -964,13 +964,13 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             displayName: "Nous Capybara 34B",
             modelDownloadURL: "https://huggingface.co/TheBloke/Nous-Capybara-34B-GGUF/resolve/main/nous-capybara-34b.Q4_K_M.gguf",
             memoryRequirement: 20_700_000,
-            context: 16384, // trained for 200K
-            // context: 8192, // trained for 200K
+            // context: 16384, // trained for 200K
+            context: 8192, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "{{prompt}}",
+            systemFormat: "SYSTEM: {{prompt}}",
             promptFormat: "\nUSER: {{prompt}}\nASSISTANT: ",
-            stopWords: ["\nUSER:", "</s>", "\</s>"],
+            stopWords: ["\nUSER:", "</s>"],
             temp: 0.89999997615814209,
             modelInference: "llama",
             topP: 0.94999998807907104,
@@ -983,8 +983,8 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             organization: "brucethemoose",
             displayName: "Capybara Tess Yi 34B",
             modelDownloadURL: "https://huggingface.co/TheBloke/Capybara-Tess-Yi-34B-200K-GGUF/resolve/main/capybara-tess-yi-34b-200k.Q5_K_M.gguf",
-            memoryRequirement: 20_700_000,
-            context: 16384, // trained for 200K
+            memoryRequirement: 24_300_000,
+            context: 12000, // trained for 200K
             // context: 8192, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Capybara Tess Yi 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",

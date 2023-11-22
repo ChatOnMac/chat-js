@@ -967,10 +967,12 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             // context: 16384, // trained for 200K
             context: 4096, // trained for 200K
             repeatPenalty: 1.1,
-            systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
+            // systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            // systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
+            systemPromptTemplate: "" + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            systemFormat: "",
             promptFormat: "\nUSER: {{prompt}} ASSISTANT:",
-            stopWords: ["\nUSER:", "</s>"],
+            stopWords: ["\nUSER:", "ASSISTANT:", "</s>"],
             temp: 0.8,
             modelInference: "llama",
             topP: 0.95,
@@ -987,12 +989,10 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             context: 4096, // trained for 200K
             // context: 8192, // trained for 200K
             repeatPenalty: 1.1,
-            // systemPromptTemplate: "You are {{name}}, a large language model based on the Capybara Tess Yi 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            // systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
-            systemPromptTemplate: "" + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "",
+            systemPromptTemplate: "You are {{name}}, a large language model based on the Capybara Tess Yi 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
+            systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
             promptFormat: "\nUSER: {{prompt}} ASSISTANT:",
-            stopWords: [],//["\nUSER:", "</s>"],
+            stopWords: ["\nUSER:", "ASSISTANT:", "</s>"],
             temp: 0.8,
             modelInference: "llama",
             topP: 0.95,

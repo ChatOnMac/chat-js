@@ -948,8 +948,8 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             context: 4096,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 7B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "{{prompt}}\n\n",
-            promptFormat: "\n\nUSER: {{prompt}}\nASSISTANT: ",
+            promptFormat: "\n\nUSER: {{prompt}}\n\nASSISTANT:</s>",
+            promptFormat: "\n\nUSER: {{prompt}}\n\nASSISTANT:",
             stopWords: ["\nUSER:", "</s>", "\</s>"],
             temp: 0.89999997615814209,
             modelInference: "llama",
@@ -965,15 +965,15 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             modelDownloadURL: "https://huggingface.co/TheBloke/Nous-Capybara-34B-GGUF/resolve/main/nous-capybara-34b.Q4_K_M.gguf",
             memoryRequirement: 20_700_000,
             // context: 16384, // trained for 200K
-            context: 8192, // trained for 200K
+            context: 4096, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "SYSTEM: {{prompt}}",
-            promptFormat: "\nUSER: {{prompt}}\nASSISTANT: ",
+            systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
+            promptFormat: "\nUSER: {{prompt}} ASSISTANT:",
             stopWords: ["\nUSER:", "</s>"],
-            temp: 0.89999997615814209,
+            temp: 0.8,
             modelInference: "llama",
-            topP: 0.94999998807907104,
+            topP: 0.95,
             nBatch: 512,
             topK: 40,
             defaultPriority: -1,
@@ -984,12 +984,12 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             displayName: "Capybara Tess Yi 34B",
             modelDownloadURL: "https://huggingface.co/TheBloke/Capybara-Tess-Yi-34B-200K-GGUF/resolve/main/capybara-tess-yi-34b-200k.Q5_K_M.gguf",
             memoryRequirement: 24_300_000,
-            context: 12000, // trained for 200K
+            context: 4096, // trained for 200K
             // context: 8192, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Capybara Tess Yi 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
-            systemFormat: "SYSTEM: {{prompt}}",
-            promptFormat: "\nUSER: {{prompt}}\nASSISTANT: ",
+            systemFormat: "\nUSER: {{prompt}} ASSISTANT:</s>",
+            promptFormat: "\nUSER: {{prompt}} ASSISTANT:",
             stopWords: ["\nUSER:", "</s>"],
             temp: 0.8,
             modelInference: "llama",

@@ -663,6 +663,7 @@ class Chat extends EventTarget {
                 body: JSON.stringify(params),
             });
             const data = await resp.json();
+            await this.setTyping({ botPersona, isTyping: false });
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
                     return await this.retryableChatCompletion({ 
@@ -673,7 +674,6 @@ class Chat extends EventTarget {
                         messageHistoryLimit: Math.max(0, messageHistory.length - 1),
                         idealMaxContextTokenRatio });
                 }
-                await this.setTyping({ botPersona, isTyping: false });
                 throw new Error(data.error.message);
             }
             return data;

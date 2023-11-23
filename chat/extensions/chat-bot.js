@@ -533,6 +533,10 @@ class Chat extends EventTarget {
         return json;
     }
 
+    async setTyping({ botPersona, isTyping }) {
+        await botPersona.incrementalPatch({ isTyping, modifiedAt: new Date().getTime() });
+    }
+
     async retryableChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit, idealMaxContextTokenRatio }) {
         const db = this.db;
         const llm = await this.personaLLM(botPersona);
@@ -544,8 +548,9 @@ class Chat extends EventTarget {
             });
             throw error;
         }
-        await llm.incrementalPatch({ isTyping: true, modifiedAt: new Date().getTime() });
         
+        await this.setTyping({ botPersona, isTyping: true });
+
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
             if (botPersona.customInstructionForContext) {
@@ -668,6 +673,7 @@ class Chat extends EventTarget {
                         messageHistoryLimit: Math.max(0, messageHistory.length - 1),
                         idealMaxContextTokenRatio });
                 }
+                await this.setTyping({ botPersona, isTyping: false });
                 throw new Error(data.error.message);
             }
             return data;
@@ -678,6 +684,7 @@ class Chat extends EventTarget {
                 docData.retryablePersonaFailures = docData.retryablePersonaFailures.concat(botPersona.id);
                 return docData;
             });
+            await this.setTyping({ botPersona, isTyping: false });
             throw error;
         }
     }

@@ -533,7 +533,7 @@ class Chat extends EventTarget {
         return json;
     }
 
-    async retryableOpenAIChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit, idealMaxContextTokenRatio }) {
+    async retryableChatCompletion({ eventTriggerID, botPersona, room, content, messageHistoryLimit, idealMaxContextTokenRatio }) {
         const db = this.db;
         const llm = await this.personaLLM(botPersona);
         if (!llm) {
@@ -544,6 +544,7 @@ class Chat extends EventTarget {
             });
             throw error;
         }
+        await llm.incrementalPatch({ isTyping: true, modifiedAt: new Date().getTime() });
         
         var systemPrompt = llm.systemPromptTemplate.replace(/{{user}}/g, botPersona.name);
         if (botPersona.customInstructionForContext || botPersona.customInstructionForReplies) {
@@ -659,7 +660,7 @@ class Chat extends EventTarget {
             const data = await resp.json();
             if (!resp.ok) {
                 if (data.error.code === 'context_length_exceeded' && messageHistory.length > 0) {
-                    return await this.retryableOpenAIChatCompletion({ 
+                    return await this.retryableChatCompletion({ 
                         eventTriggerID, 
                         botPersona,
                         room,
@@ -721,7 +722,7 @@ window.chat.addEventListener("offerUnusedPersonas", async event => {
     if (existingBots.length > 0) {
         const existingBot = existingBots[0];
         if (!existingBot.online) {
-            existingBot.incrementalPatch({
+            await existingBot.incrementalPatch({
                 online: true,
                 modifiedAt: new Date().getTime(),
             });
@@ -764,7 +765,7 @@ chat.addEventListener("finishedInitialSync", async (event) => {
         }
         
         try {
-            const data = await window.chat.retryableOpenAIChatCompletion({
+            const data = await window.chat.retryableChatCompletion({
                 eventTriggerID: documentData.id, botPersona, room, content: documentData.content,
                 idealMaxContextTokenRatio: 0.666,
             });
@@ -965,7 +966,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             modelDownloadURL: "https://huggingface.co/TheBloke/Nous-Capybara-34B-GGUF/resolve/main/nous-capybara-34b.Q4_K_M.gguf",
             memoryRequirement: 20_700_000,
             // context: 16384, // trained for 200K
-            context: 4096, // trained for 200K
+            context: 8192, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Nous Capybara 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "\nUSER: {{prompt}} ASSISTANT: OK.</s>",
@@ -984,8 +985,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             displayName: "Capybara Tess Yi 34B",
             modelDownloadURL: "https://huggingface.co/TheBloke/Capybara-Tess-Yi-34B-200K-GGUF/resolve/main/capybara-tess-yi-34b-200k.Q5_K_M.gguf",
             memoryRequirement: 24_300_000,
-            context: 4096, // trained for 200K
-            // context: 8192, // trained for 200K
+            context: 8192, // trained for 200K
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the Capybara Tess Yi 34B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + "\n\nYou are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.",
             systemFormat: "\nUSER: {{prompt}} ASSISTANT: OK.</s>",

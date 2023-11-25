@@ -945,7 +945,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             topP: 0.95,
             nBatch: 512,
             topK: 40,
-            defaultPriority: -1,
+            defaultPriority: 100,
         },
         {
             name: "NousResearch-Nous-Capybara-3B-V1.9-Q8_0",
@@ -964,7 +964,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             topP: 0.95,
             nBatch: 512,
             topK: 40,
-            defaultPriority: -1,
+            defaultPriority: 101,
         },
         {
             name: "Capybara-7B-V1.9-Q5_K_M",

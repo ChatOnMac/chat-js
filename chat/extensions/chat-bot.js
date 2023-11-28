@@ -32,8 +32,7 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb@
 import { RxDBDevModePlugin } from "npm:rxdb@14.17.1/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb@14.17.1/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb@14.17.1/plugins/storage-memory";
-import gpt35TurboTokenizer from "npm:gpt-tokenizer@2.1.2/model/gpt-3.5-turbo";
-import gpt4Tokenizer from "npm:gpt-tokenizer@2.1.2/model/gpt-4";
+import { GPTTokenizer_cl100k_base  } from "npm:gpt-tokenizer@2.1.2";
 import llamaTokenizer from "jsdelivr.gh:belladoreai/llama-tokenizer-js@b88929eb8c462c/llama-tokenizer.js";
 
 addRxPlugin(RxDBDevModePlugin);
@@ -569,10 +568,8 @@ class Chat extends EventTarget {
         const tokenLimit = llm.context;
         let gptTokenizer;
         switch (llm.name) {
-            case "gpt-3.5-turbo", "gpt-3.5-turbo-1106":
-                gptTokenizer = gpt35TurboTokenizer;
-            case "gpt-4", "gpt-4-1106-preview", "gpt-4-0613":
-                gptTokenizer = gpt4Tokenizer;
+            case "gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-4", "gpt-4-1106-preview", "gpt-4-0613":
+                gptTokenizer = GPTTokenizer_cl100k_base;
             default:
                 gptTokenizer = null;
         }

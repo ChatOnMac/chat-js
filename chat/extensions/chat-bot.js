@@ -32,8 +32,8 @@ import { addRxPlugin, createRxDatabase, lastOfArray, deepEqual } from "npm:rxdb@
 import { RxDBDevModePlugin } from "npm:rxdb@14.17.1/plugins/dev-mode";
 import { replicateRxCollection } from "npm:rxdb@14.17.1/plugins/replication";
 import { getRxStorageMemory } from "npm:rxdb@14.17.1/plugins/storage-memory";
-import gpt35TurboTokenizer from "gpt-tokenizer/model/gpt-3.5-turbo";
-import gpt4Tokenizer from "gpt-tokenizer/model/gpt-4";
+import gpt35TurboTokenizer from "npm:gpt-tokenizer@2.1.2/model/gpt-3.5-turbo";
+import gpt4Tokenizer from "npm:gpt-tokenizer@2.1.2/model/gpt-4";
 import llamaTokenizer from "jsdelivr.gh:belladoreai/llama-tokenizer-js@b88929eb8c462c/llama-tokenizer.js";
 
 addRxPlugin(RxDBDevModePlugin);

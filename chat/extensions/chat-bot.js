@@ -353,7 +353,8 @@ class Chat extends EventTarget {
                     }, {});
                     if (Object.keys(updateObject).length > 0) {
                         updateObject.modifiedAt = new Date().getTime();
-                        await existing.incrementalPatch(updateObject);
+                        let latestExisting = await db.collections.llm_configuration.findOne(existing.id).exec();
+                        await latestExisting.incrementalPatch(updateObject);
                     }
                     updatedLLMs.push(existing);
                 }

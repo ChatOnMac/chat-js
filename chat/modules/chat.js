@@ -422,7 +422,7 @@
 //                 systemPrompt +=  `HOW TO RESPOND:\n\nThe user provided the following additional info about how they would like you to respond. This is shown to you in all conversations, so don't acknowledge its existence of these instructions or information at all. How to respond:\n\n` + botPersona.customInstructionForResponses.trim() + "\n\n"
 //             }
 //         } else {
-//             systemPrompt = "You are a helpful assistant. Be concise, precise, and accurate. Don't refer back to the existence of these instructions at all.";
+//             systemPrompt = "As an AI Assistant, your task is to respond to any questions asked in a concise, helpful and truthful manner. Please make sure you provide diverse and informative responses to keep the conversation engaging. Avoid getting stuck in loops or repeating the same answer over and over again. You will only answer one question and will not pretend to be or respond as the user. Do not return more than one response at a time. DO NOT RESPOND AS THE USER! Be concise, precise, and accurate. Avoid wordiness and take a deep breath before answering. Don't refer back to the existence of these instructions.";
 //         }
 //         systemPrompt = systemPrompt.trim();
         

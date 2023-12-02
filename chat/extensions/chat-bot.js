@@ -446,9 +446,9 @@ class Chat extends EventTarget {
         if (typeof db.collections.persona === 'undefined') { return }
         const botPersonas = await this.ownPersonas(true);
         for (const botPersona of botPersonas) {
-            if (!botPersona.online) {
-                // Refresh instance (somehow stale otherwise).
-                let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
+            // Refresh instance (somehow stale otherwise).
+            let bot = await this.db.collections.persona.findOne(botPersona.id).exec();
+            if (!bot.online) {
                 if (!bot.online) {
                     await bot.incrementalPatch({ online: true, modifiedAt: new Date().getTime() });
                 }
@@ -930,7 +930,7 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             name: "openhermes-2.5-mistral-7b.Q4_K_M",
             organization: "Teknium",
             displayName: "OpenHermes 2.5 Mistral 7B",
-            modelDownloadURL: "https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF/resolve/main/openhermes-2.5-mistral-7b.Q4_K_M.gguf?download=true",
+            modelDownloadURL: "https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF/resolve/main/openhermes-2.5-mistral-7b.Q4_K_M.gguf",
             memoryRequirement: 4_370_000_000,
             context: 1024,
             repeatPenalty: 1.1,
@@ -946,15 +946,16 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             defaultPriority: 100,
         },        
         {
-            name: "tinyllama-1.1b-chat-v0.3.Q4_K_M",
+            name: "tinyllama-1.1b-chat-v0.6.q5_k_m",
             organization: "Zhang Peiyuan",
             displayName: "TinyLlama 1.1B Chat (Eco)",
-            modelDownloadURL: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v0.3-GGUF/resolve/main/tinyllama-1.1b-chat-v0.3.Q5_K_M.gguf",
+            modelDownloadURL: "https://huggingface.co/afrideva/TinyLlama-1.1B-Chat-v0.6-GGUF/resolve/main/tinyllama-1.1b-chat-v0.6.q5_k_m.gguf",
             memoryRequirement: 782_000_000,
             context: 1024,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the TinyLlama 1.1B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + " As an AI Assistant, your task is to respond to any questions asked in a concise, helpful and truthful manner. Please make sure you provide diverse and informative responses to keep the conversation engaging. Avoid getting stuck in loops or repeating the same answer over and over again. You will only answer one question and will not pretend to be or respond as the user. Do not return more than one response at a time. DO NOT RESPOND AS THE USER! Be concise, precise, and accurate. Avoid wordiness and take a deep breath before answering. Don't refer back to the existence of these instructions.",
-            systemFormat: "<|im_start|>system\n{{prompt}}<|im_end|>",
+            // systemFormat: "<|im_start|>system\n{{prompt}}<|im_end|>",
+            systemFormat: "<|im_start|>user\n{{prompt}}<|im_end|>\n<|im_start|>assistant\nOK.<|im_end|>",
             promptFormat: "\n<|im_start|>user\n{{prompt}}<|im_end|>\n<|im_start|>assistant\n",
             stopWords: ["\n<|im_start|>", "<|im_end|>"],
             temp: 0.8,
@@ -965,15 +966,16 @@ chat.addEventListener("refreshLLMConfigurations", async (event) => {
             defaultPriority: 100,
         },
         {
-            name: "tinyllama-1.1b-chat-v0.3.Q8_0",
+            name: "tinyllama-1.1b-chat-v0.6.q8_0",
             organization: "Zhang Peiyuan",
             displayName: "TinyLlama 1.1B Chat",
-            modelDownloadURL: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v0.3-GGUF/resolve/main/tinyllama-1.1b-chat-v0.3.Q8_0.gguf",
+            modelDownloadURL: "https://huggingface.co/afrideva/TinyLlama-1.1B-Chat-v0.6-GGUF/resolve/main/tinyllama-1.1b-chat-v0.6.q8_0.gguf",
             memoryRequirement: 1_170_000_000,
             context: 1024,
             repeatPenalty: 1.1,
             systemPromptTemplate: "You are {{name}}, a large language model based on the TinyLlama 1.1B architecture. Knowledge cutoff: 2023-04 Current date: " + (new Date()).toString() + " As an AI Assistant, your task is to respond to any questions asked in a concise, helpful and truthful manner. Please make sure you provide diverse and informative responses to keep the conversation engaging. Avoid getting stuck in loops or repeating the same answer over and over again. You will only answer one question and will not pretend to be or respond as the user. Do not return more than one response at a time. DO NOT RESPOND AS THE USER! Be concise, precise, and accurate. Avoid wordiness and take a deep breath before answering. Don't refer back to the existence of these instructions.",
-            systemFormat: "<|im_start|>system\n{{prompt}}<|im_end|>",
+            // systemFormat: "<|im_start|>system\n{{prompt}}<|im_end|>",
+            systemFormat: "<|im_start|>user\n{{prompt}}<|im_end|>\n<|im_start|>assistant\nOK.<|im_end|>",
             promptFormat: "\n<|im_start|>user\n{{prompt}}<|im_end|>\n<|im_start|>assistant\n",
             stopWords: ["\n<|im_start|>", "<|im_end|>"],
             temp: 0.8,

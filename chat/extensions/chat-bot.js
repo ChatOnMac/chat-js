@@ -542,11 +542,12 @@ class Chat extends EventTarget {
         const llm = await this.personaLLM(botPersona);
         if (!llm) {
             var eventDoc = await this.db.collections.event.findOne(eventTriggerID).exec();
+            const errorMsg = "No AI model selected, or not finished initializing yet.";
             await eventDoc.incrementalModify((docData) => {
-                docData.failureMessages = "No AI model selected, or not finished initializing yet."
+                docData.failureMessages = docData.failureMessages.concat(errorMsg);
                 return docData;
             });
-            throw error;
+            throw new Error(errorMsg);
         }
         
         await this.setTyping({ botPersona, isTyping: true });
